@@ -17,13 +17,20 @@ interface Segment {
   paceSecPerMile?: number;
 }
 
+export interface StrengthItem {
+  name: string;
+  sets: number;
+  reps: string;
+  note?: string | null;
+}
+
 export interface DayWorkout {
   id: string;
   dayOfWeek: number;
   date: string; // ISO
   type: string;
   plannedSegments: Segment[];
-  strength?: string; // recommended strength session name, if any
+  strength?: { name: string; items: StrengthItem[] }; // recommended session, if any
 }
 
 const TYPE_LABEL: Record<string, string> = {
@@ -88,6 +95,7 @@ export default function WeekDays({ days }: { days: DayWorkout[] }) {
   const [dragId, setDragId] = useState<string | null>(null);
   const [overId, setOverId] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
+  const [openStrength, setOpenStrength] = useState<string | null>(null);
 
   async function handleDrop(targetId: string) {
     const sourceId = dragId;
@@ -149,12 +157,36 @@ export default function WeekDays({ days }: { days: DayWorkout[] }) {
                   {TYPE_LABEL[d.type] ?? d.type.toLowerCase()}
                 </span>
                 {d.strength && (
-                  <span className="type-pill" style={{ background: "#EEEDFE", color: "#3C3489" }}>
-                    + strength: {d.strength}
-                  </span>
+                  <button
+                    type="button"
+                    className="type-pill"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setOpenStrength(openStrength === d.id ? null : d.id);
+                    }}
+                    style={{ background: "#EEEDFE", color: "#3C3489", border: "none", cursor: "pointer" }}
+                  >
+                    + strength: {d.strength.name} {openStrength === d.id ? "▴" : "▾"}
+                  </button>
                 )}
               </span>
               {detail && <div className="day-detail">{detail}</div>}
+              {d.strength && openStrength === d.id && (
+                <div style={{ marginTop: 8, paddingTop: 8, borderTop: "1px solid var(--border)" }}>
+                  {d.strength.items.map((it, i) => (
+                    <div
+                      key={i}
+                      style={{ display: "flex", justifyContent: "space-between", gap: 12, fontSize: "0.8rem", padding: "2px 0" }}
+                    >
+                      <span>{it.name}</span>
+                      <span className="muted" style={{ fontVariantNumeric: "tabular-nums", whiteSpace: "nowrap" }}>
+                        {it.sets} × {it.reps}
+                        {it.note ? ` · ${it.note}` : ""}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         );

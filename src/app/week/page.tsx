@@ -82,7 +82,10 @@ export default async function WeekPage({
   const strengthByDay = new Map(
     buildWeekStrength(weekForStrength, phaseForMesocycle(meso?.order ?? 1), sessions, exercises).map((s) => [
       s.dayOfWeek,
-      s.name,
+      {
+        name: s.name,
+        items: s.items.map((i) => ({ name: i.name, sets: i.sets, reps: i.reps, note: i.note ?? null })),
+      },
     ]),
   );
 
