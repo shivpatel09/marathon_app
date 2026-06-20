@@ -198,11 +198,77 @@ async function upsertPlan(plan) {
   console.log(`  ${plan.name}: ${plan.mesocycles.length} mesocycles, ${workouts} workouts`);
 }
 
+// ---- Strength library + sessions ----
+
+const EXERCISES = [
+  { key: "back_squat", name: "Back squat", pattern: "SQUAT", equipment: "barbell", cues: "Brace, knees track toes, full depth." },
+  { key: "goblet_squat", name: "Goblet squat", pattern: "SQUAT", equipment: "dumbbell", cues: "Tall chest, control the descent." },
+  { key: "trap_bar_deadlift", name: "Trap-bar deadlift", pattern: "HINGE", equipment: "barbell", cues: "Flat back, drive through the floor." },
+  { key: "romanian_deadlift", name: "Romanian deadlift", pattern: "HINGE", equipment: "barbell", cues: "Hinge from the hips, soft knees, flat back." },
+  { key: "single_leg_rdl", name: "Single-leg RDL", pattern: "HINGE", equipment: "dumbbell", isUnilateral: true, cues: "Square hips, slow tempo." },
+  { key: "hip_thrust", name: "Hip thrust", pattern: "HINGE", equipment: "barbell", cues: "Ribs down, squeeze glutes at the top." },
+  { key: "walking_lunge", name: "Walking lunge", pattern: "LUNGE", equipment: "dumbbell", isUnilateral: true, cues: "Long stride, vertical shin." },
+  { key: "bulgarian_split_squat", name: "Bulgarian split squat", pattern: "LUNGE", equipment: "dumbbell", isUnilateral: true, cues: "Most weight on front leg." },
+  { key: "step_up", name: "Step-up", pattern: "LUNGE", equipment: "dumbbell", isUnilateral: true, cues: "Drive through the top foot, no push-off." },
+  { key: "calf_raise", name: "Standing calf raise", pattern: "CALF", equipment: "bodyweight / dumbbell", cues: "Full range, pause at the top." },
+  { key: "push_up", name: "Push-up", pattern: "PUSH", equipment: "bodyweight", cues: "Rigid plank, elbows ~45°." },
+  { key: "single_arm_row", name: "Single-arm row", pattern: "PULL", equipment: "dumbbell", isUnilateral: true, cues: "Flat back, pull to the hip." },
+  { key: "plank", name: "Front plank", pattern: "CORE", equipment: "bodyweight", cues: "Glutes + abs tight, neutral spine." },
+  { key: "side_plank", name: "Side plank", pattern: "CORE", equipment: "bodyweight", isUnilateral: true, cues: "Stack hips, drive the bottom hip up." },
+  { key: "pallof_press", name: "Pallof press", pattern: "CORE", equipment: "band / cable", isUnilateral: true, cues: "Resist rotation, ribs down." },
+  { key: "box_jump", name: "Box jump", pattern: "PLYO", equipment: "box", cues: "Soft landing, step back down." },
+  { key: "pogo_hops", name: "Pogo hops", pattern: "PLYO", equipment: "bodyweight", cues: "Stiff ankles, minimal ground contact." },
+];
+
+const it = (exerciseKey, sets, reps, note) => ({ exerciseKey, sets, reps, ...(note ? { note } : {}) });
+
+const SESSIONS = [
+  // base — heavier compounds, linear progression
+  { phase: "base", slot: "A", name: "Lower strength", order: 1, items: [
+    it("back_squat", 3, "6"), it("romanian_deadlift", 3, "8"), it("walking_lunge", 3, "10/leg"), it("calf_raise", 3, "15"), it("plank", 3, "45s") ] },
+  { phase: "base", slot: "B", name: "Posterior + core", order: 2, items: [
+    it("trap_bar_deadlift", 3, "5"), it("hip_thrust", 3, "8"), it("single_leg_rdl", 3, "8/leg"), it("single_arm_row", 3, "10/side"), it("side_plank", 3, "30s/side") ] },
+  // build — maintain load, add power
+  { phase: "build", slot: "A", name: "Lower power", order: 1, items: [
+    it("back_squat", 4, "5"), it("bulgarian_split_squat", 3, "8/leg"), it("box_jump", 4, "4"), it("calf_raise", 3, "15"), it("pallof_press", 3, "10/side") ] },
+  { phase: "build", slot: "B", name: "Strength + core", order: 2, items: [
+    it("romanian_deadlift", 4, "6"), it("hip_thrust", 3, "8"), it("step_up", 3, "10/leg"), it("push_up", 3, "AMRAP"), it("plank", 3, "60s") ] },
+  // peak — reduced volume, maintenance + plyo
+  { phase: "peak", slot: "A", name: "Maintenance + plyo", order: 1, items: [
+    it("goblet_squat", 2, "8"), it("pogo_hops", 3, "20"), it("single_leg_rdl", 2, "8/leg"), it("calf_raise", 2, "15", "keep it snappy") ] },
+  { phase: "peak", slot: "B", name: "Activation + core", order: 2, items: [
+    it("hip_thrust", 2, "10"), it("step_up", 2, "10/leg"), it("box_jump", 3, "3", "low box"), it("side_plank", 2, "30s/side") ] },
+  // taper — minimal, mobility + activation
+  { phase: "taper", slot: "A", name: "Light activation", order: 1, items: [
+    it("goblet_squat", 2, "8", "light"), it("hip_thrust", 2, "10", "light"), it("pogo_hops", 2, "15"), it("plank", 2, "30s") ] },
+  { phase: "taper", slot: "B", name: "Mobility + core", order: 2, items: [
+    it("single_leg_rdl", 2, "8/leg", "light"), it("push_up", 2, "10"), it("side_plank", 2, "20s/side") ] },
+];
+
+async function seedStrength() {
+  for (const e of EXERCISES) {
+    await prisma.strengthExercise.upsert({
+      where: { key: e.key },
+      create: { isUnilateral: false, ...e },
+      update: { name: e.name, pattern: e.pattern, equipment: e.equipment, isUnilateral: e.isUnilateral ?? false, cues: e.cues },
+    });
+  }
+  for (const s of SESSIONS) {
+    await prisma.strengthSessionTemplate.upsert({
+      where: { phase_slot: { phase: s.phase, slot: s.slot } },
+      create: s,
+      update: { name: s.name, order: s.order, items: s.items },
+    });
+  }
+  console.log(`  Strength: ${EXERCISES.length} exercises, ${SESSIONS.length} session templates`);
+}
+
 async function main() {
   console.log("Seeding training plans...");
   for (const plan of [pfitz(), hansons("beginner"), hansons("advanced")]) {
     await upsertPlan(plan);
   }
+  await seedStrength();
   console.log("Done.");
 }
 

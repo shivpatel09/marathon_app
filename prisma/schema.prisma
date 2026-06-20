@@ -242,3 +242,37 @@ enum IntakeSignal {
   ON_TARGET
   OVER
 }
+
+// ---- Strength library + phase-progressed sessions (spec §9.3) ----
+
+model StrengthExercise {
+  id           String          @id @default(cuid())
+  key          String          @unique
+  name         String
+  pattern      MovementPattern
+  equipment    String?
+  isUnilateral Boolean         @default(false)
+  cues         String?
+}
+
+model StrengthSessionTemplate {
+  id    String @id @default(cuid())
+  phase String // base | build | peak | taper
+  slot  String // A | B
+  name  String
+  order Int
+  items Json // [{ exerciseKey, sets, reps, note? }]
+
+  @@unique([phase, slot])
+}
+
+enum MovementPattern {
+  SQUAT
+  HINGE
+  LUNGE
+  PUSH
+  PULL
+  CORE
+  PLYO
+  CALF
+}
