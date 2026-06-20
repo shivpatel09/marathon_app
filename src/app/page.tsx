@@ -1,10 +1,8 @@
 import Link from "next/link";
 import { auth } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
 import { getActivePlanInstance } from "@/lib/plan";
 import SignIn from "@/components/SignIn";
 import SignOut from "@/components/SignOut";
-import ActivityList, { ActivityRow } from "@/components/ActivityList";
 
 export default async function Home() {
   const session = await auth();
@@ -21,23 +19,6 @@ export default async function Home() {
       </main>
     );
   }
-
-  const activities = await prisma.activity.findMany({
-    where: { userId: session.user.id },
-    orderBy: { startDate: "desc" },
-    take: 100,
-  });
-
-  const rows: ActivityRow[] = activities.map((a) => ({
-    id: a.id,
-    name: a.name,
-    type: a.type,
-    startDate: a.startDate.toISOString(),
-    distanceM: a.distanceM,
-    movingTime: a.movingTime,
-    avgSpeed: a.avgSpeed,
-    avgHr: a.avgHr,
-  }));
 
   const plan = await getActivePlanInstance(session.user.id);
 
@@ -63,6 +44,7 @@ export default async function Home() {
         ) : (
           <Link href="/setup"><button className="primary">Set up a plan</button></Link>
         )}
+        <Link href="/runs"><button>Recent runs</button></Link>
         <Link href="/nutrition"><button>Nutrition</button></Link>
         <Link href="/setup"><button>Change plan</button></Link>
       </nav>
@@ -75,8 +57,6 @@ export default async function Home() {
           {String(plan.goalTimeSec % 60).padStart(2, "0")}
         </p>
       )}
-
-      <ActivityList activities={rows} />
     </main>
   );
 }
