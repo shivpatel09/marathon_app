@@ -45,6 +45,7 @@ const TYPE_LABEL: Record<string, string> = {
   SPEED: "speed",
   STRENGTH_INTERVALS: "strength",
   STRIDES: "strides",
+  RACE: "race day — marathon",
   TUNE_UP_RACE: "tune-up race",
   REST: "rest",
   CROSS_TRAIN: "cross-train",
@@ -64,6 +65,7 @@ function pillColors(type: string): { bg: string; fg: string } {
     case "VO2MAX":
     case "SPEED":
     case "STRENGTH_INTERVALS":
+    case "RACE":
     case "TUNE_UP_RACE":
       return { bg: "#FAECE7", fg: "#712B13" };
     default:
@@ -79,8 +81,8 @@ function segText(s: Segment): string {
   }
   if (s.kind === "strides") return `${s.reps} × ${s.repValue}m strides`;
   if (s.kind === "race") {
-    const pace = s.paceSecPerMile ? ` @ ${formatPace(s.paceSecPerMile)}` : "";
-    return `${s.value}${s.unit} race${pace}`;
+    const pace = s.paceSecPerMile ? ` @ ${formatPace(s.paceSecPerMile)}/mi` : "";
+    return `${s.value} ${s.unit}${pace}`;
   }
   if (typeof s.value === "number") {
     return `${s.value} mi${s.paceSecPerMile ? ` @ ${formatPace(s.paceSecPerMile)}` : ""}`;

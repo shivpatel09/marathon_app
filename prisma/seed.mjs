@@ -62,8 +62,10 @@ function pfitz() {
     add(4, friGA[i] > 0 ? "GENERAL_AEROBIC" : "REST", friGA[i] > 0 ? [run("GENERAL_AEROBIC", friGA[i])] : []);
     add(5, "GENERAL_AEROBIC", [run("GENERAL_AEROBIC", satGA[i]), strides(6)]);
 
-    // Sun — long run, or a tune-up race in the race-prep block (week 14)
-    if (w === 14) {
+    // Sun — race day (week 18), a tune-up race (week 14), else the long run
+    if (w === 18) {
+      add(6, "RACE", [{ kind: "race", paceRef: "MARATHON", value: 26.2, unit: "mi" }]);
+    } else if (w === 14) {
       add(6, "TUNE_UP_RACE", [run("EASY", 3), { kind: "race", paceRef: "LT", value: 10, unit: "K" }, run("EASY", 2)]);
     } else {
       add(6, "LONG", [run("LONG", longRun[i])]);
@@ -132,7 +134,8 @@ function hansons(variant) {
 
     add(4, "EASY", [run("EASY", e)]);
     add(5, "EASY", [run("EASY", adv ? e : Math.max(e - 1, 4))]);
-    add(6, "LONG", [run("LONG", longRun[w])]);
+    if (w === 18) add(6, "RACE", [{ kind: "race", paceRef: "MARATHON", value: 26.2, unit: "mi" }]);
+    else add(6, "LONG", [run("LONG", longRun[w])]);
   }
 
   return {
@@ -151,38 +154,48 @@ function hansons(variant) {
 }
 
 async function upsertPlan(plan) {
-  await prisma.trainingPlanTemplate.deleteMany({ where: { key: plan.key } });
-  const created = await prisma.trainingPlanTemplate.create({
-    data: {
-      key: plan.key,
-      name: plan.name,
-      author: plan.author,
-      weeks: plan.weeks,
-      daysPerWeek: plan.daysPerWeek,
-      peakMileage: plan.peakMileage,
-      longRunCap: plan.longRunCap,
-      description: plan.description,
-      mesocycles: {
-        create: plan.mesocycles.map((m) => ({
-          name: m.name,
-          startWeek: m.startWeek,
-          endWeek: m.endWeek,
-          order: m.order,
-          workouts: {
-            create: m.workouts.map((w) => ({
-              weekIndex: w.weekIndex,
-              dayOfWeek: w.dayOfWeek,
-              type: w.type,
-              segments: w.segments,
-            })),
-          },
-        })),
-      },
-    },
-    include: { mesocycles: { include: { _count: { select: { workouts: true } } } } },
+  // Upsert the template by key so its id stays stable — existing
+  // UserPlanInstance rows reference templateId (FK RESTRICT), so the template
+  // row must not be deleted. We replace only the child mesocycles/workouts.
+  const meta = {
+    name: plan.name,
+    author: plan.author,
+    weeks: plan.weeks,
+    daysPerWeek: plan.daysPerWeek,
+    peakMileage: plan.peakMileage,
+    longRunCap: plan.longRunCap,
+    description: plan.description,
+  };
+  const tpl = await prisma.trainingPlanTemplate.upsert({
+    where: { key: plan.key },
+    create: { key: plan.key, ...meta },
+    update: meta,
   });
-  const workouts = created.mesocycles.reduce((s, m) => s + m._count.workouts, 0);
-  console.log(`  ${plan.name}: ${created.mesocycles.length} mesocycles, ${workouts} workouts`);
+
+  await prisma.mesocycle.deleteMany({ where: { templateId: tpl.id } }); // cascades to workouts
+
+  let workouts = 0;
+  for (const m of plan.mesocycles) {
+    await prisma.mesocycle.create({
+      data: {
+        templateId: tpl.id,
+        name: m.name,
+        startWeek: m.startWeek,
+        endWeek: m.endWeek,
+        order: m.order,
+        workouts: {
+          create: m.workouts.map((w) => ({
+            weekIndex: w.weekIndex,
+            dayOfWeek: w.dayOfWeek,
+            type: w.type,
+            segments: w.segments,
+          })),
+        },
+      },
+    });
+    workouts += m.workouts.length;
+  }
+  console.log(`  ${plan.name}: ${plan.mesocycles.length} mesocycles, ${workouts} workouts`);
 }
 
 async function main() {
