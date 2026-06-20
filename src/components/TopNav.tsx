@@ -4,15 +4,17 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 const ICON = {
+  home: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+      <path d="M3 10.5 12 3l9 7.5" />
+      <path d="M5 9.5V21h14V9.5" />
+      <path d="M9.5 21v-6h5v6" />
+    </svg>
+  ),
   week: (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
       <rect x="3" y="4" width="18" height="17" rx="2" />
       <path d="M3 9h18M8 3v3M16 3v3" />
-    </svg>
-  ),
-  runs: (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-      <path d="M3 12h4l2-6 4 12 2-6h6" />
     </svg>
   ),
   strength: (
@@ -31,29 +33,37 @@ const ICON = {
       <path d="M3.5 21h17" />
     </svg>
   ),
+  runs: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+      <path d="M3 12h4l2-6 4 12 2-6h6" />
+    </svg>
+  ),
 };
 
 const TABS = [
+  { href: "/", label: "Home", icon: ICON.home },
   { href: "/week", label: "Week", icon: ICON.week },
-  { href: "/runs", label: "Runs", icon: ICON.runs },
   { href: "/strength", label: "Strength", icon: ICON.strength },
   { href: "/nutrition", label: "Nutrition", icon: ICON.nutrition },
   { href: "/review", label: "Review", icon: ICON.review },
+  { href: "/runs", label: "Runs", icon: ICON.runs },
 ];
 
-export default function BottomNav() {
+export default function TopNav() {
   const pathname = usePathname();
   return (
-    <nav className="bottom-nav" aria-label="Main navigation">
-      {TABS.map((t) => {
-        const active = pathname === t.href || pathname.startsWith(`${t.href}/`);
-        return (
-          <Link key={t.href} href={t.href} className={`bn-item${active ? " active" : ""}`} aria-current={active ? "page" : undefined}>
-            <span className="bn-icon">{t.icon}</span>
-            <span className="bn-label">{t.label}</span>
-          </Link>
-        );
-      })}
+    <nav className="top-nav" aria-label="Main navigation">
+      <div className="top-nav-inner">
+        {TABS.map((t) => {
+          const active = t.href === "/" ? pathname === "/" : pathname === t.href || pathname.startsWith(`${t.href}/`);
+          return (
+            <Link key={t.href} href={t.href} className={`tn-item${active ? " active" : ""}`} aria-current={active ? "page" : undefined}>
+              <span className="tn-icon">{t.icon}</span>
+              <span className="tn-label">{t.label}</span>
+            </Link>
+          );
+        })}
+      </div>
     </nav>
   );
 }

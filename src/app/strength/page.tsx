@@ -24,9 +24,6 @@ export default async function StrengthPage({
   if (!instance) {
     return (
       <main className="container">
-        <div style={{ marginBottom: "1rem" }}>
-          <Link href="/"><button>← Dashboard</button></Link>
-        </div>
         <h1>No active plan</h1>
         <p className="muted" style={{ marginBottom: "1.5rem" }}>
           Set up a plan to get strength sessions matched to your training.
@@ -78,9 +75,6 @@ export default async function StrengthPage({
 
   return (
     <main className="container">
-      <div style={{ marginBottom: "1rem" }}>
-        <Link href="/"><button>← Dashboard</button></Link>
-      </div>
       <div className="row" style={{ marginBottom: 6 }}>
         <h1 style={{ margin: 0 }}>Strength</h1>
         <div style={{ display: "flex", gap: 6, alignItems: "center" }}>

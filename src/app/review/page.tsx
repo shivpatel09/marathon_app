@@ -39,9 +39,6 @@ export default async function ReviewPage({
 
   return (
     <main className="container">
-      <div style={{ marginBottom: "1rem" }}>
-        <Link href="/"><button>← Dashboard</button></Link>
-      </div>
       <ReviewView review={review} coaching={coaching} />
     </main>
   );

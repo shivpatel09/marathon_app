@@ -1,8 +1,11 @@
 import Link from "next/link";
 import { auth } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
 import { getActivePlanInstance } from "@/lib/plan";
+import { buildPlanOverview } from "@/lib/overview";
 import SignIn from "@/components/SignIn";
 import SignOut from "@/components/SignOut";
+import PlanOverview from "@/components/PlanOverview";
 
 export default async function Home() {
   const session = await auth();
@@ -22,39 +25,58 @@ export default async function Home() {
 
   const plan = await getActivePlanInstance(session.user.id);
 
+  if (!plan) {
+    return (
+      <main className="container">
+        <div className="row" style={{ marginBottom: "1rem" }}>
+          <h1 style={{ margin: 0 }}>Marathon trainer</h1>
+          <SignOut />
+        </div>
+        <p className="muted" style={{ marginBottom: "1.5rem" }}>
+          You don&apos;t have a plan yet. Pick a proven program and we&apos;ll personalize it to your goal.
+        </p>
+        <Link href="/setup"><button className="primary">Set up a plan</button></Link>
+      </main>
+    );
+  }
+
+  const activities = await prisma.activity.findMany({
+    where: { userId: session.user.id },
+    select: { startDate: true, distanceM: true },
+  });
+
+  const overview = buildPlanOverview(
+    {
+      planName: plan.template.name,
+      weeks: plan.template.weeks,
+      goalTimeSec: plan.goalTimeSec,
+      raceDate: plan.raceDate,
+      scheduled: plan.scheduled.map((s) => ({
+        weekIndex: s.weekIndex,
+        date: s.date,
+        plannedSegments: (s.plannedSegments as { value?: number }[]) ?? [],
+      })),
+      activities,
+    },
+    new Date(),
+  );
+
   return (
     <main className="container">
-      <div className="row" style={{ marginBottom: "1rem" }}>
+      <div className="row" style={{ marginBottom: "0.75rem" }}>
         <div>
-          <h1>Marathon trainer</h1>
-          <p className="muted" style={{ margin: 0 }}>
-            Signed in as {session.user.name ?? "athlete"}
+          <h1 style={{ margin: 0 }}>{plan.template.name}</h1>
+          <p className="muted" style={{ margin: 0, fontSize: 13 }}>
+            {session.user.name ?? "athlete"}
           </p>
         </div>
-        <SignOut />
+        <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+          <Link href="/setup"><button>Change plan</button></Link>
+          <SignOut />
+        </div>
       </div>
 
-      {plan ? (
-        <>
-          <p className="muted" style={{ fontSize: 14, marginTop: 0 }}>
-            On <strong>{plan.template.name}</strong> · goal{" "}
-            {Math.floor(plan.goalTimeSec / 3600)}:
-            {String(Math.floor((plan.goalTimeSec % 3600) / 60)).padStart(2, "0")}:
-            {String(plan.goalTimeSec % 60).padStart(2, "0")}
-          </p>
-          <p className="muted" style={{ fontSize: 14 }}>
-            Use the tabs below to jump between your week, runs, strength, nutrition, and weekly review.
-          </p>
-          <nav className="nav">
-            <Link href="/week"><button className="primary">This week</button></Link>
-            <Link href="/setup"><button>Change plan</button></Link>
-          </nav>
-        </>
-      ) : (
-        <nav className="nav">
-          <Link href="/setup"><button className="primary">Set up a plan</button></Link>
-        </nav>
-      )}
+      <PlanOverview o={overview} />
     </main>
   );
 }

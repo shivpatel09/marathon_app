@@ -36,55 +36,72 @@ body {
 .container {
   max-width: 820px;
   margin: 0 auto;
-  padding: 2rem 1.25rem 7rem; /* extra bottom space for the fixed nav bar */
+  padding: 4.75rem 1.25rem 3rem; /* top space for the fixed top nav */
 }
 
-/* fixed bottom tab bar (mobile-first; floats centered on wider screens) */
-.bottom-nav {
+/* fixed top tab bar — primary navigation */
+.top-nav {
   position: fixed;
-  left: 12px;
-  right: 12px;
-  bottom: calc(12px + env(safe-area-inset-bottom));
-  max-width: 460px;
-  margin: 0 auto;
-  display: flex;
-  justify-content: space-around;
-  gap: 2px;
+  top: 0;
+  left: 0;
+  right: 0;
   background: var(--bg);
-  border: 1px solid var(--border);
-  border-radius: 18px;
-  padding: 6px 4px;
-  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.12);
+  border-bottom: 1px solid var(--border);
   z-index: 50;
+  padding-top: env(safe-area-inset-top);
 }
 
-.bn-item {
-  flex: 1;
+.top-nav-inner {
+  display: flex;
+  max-width: 680px;
+  margin: 0 auto;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.top-nav-inner::-webkit-scrollbar {
+  display: none;
+}
+
+.tn-item {
+  flex: 1 0 auto;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 3px;
-  padding: 6px 2px;
-  border-radius: 12px;
+  padding: 9px 12px 7px;
   text-decoration: none;
   color: var(--muted);
-  font-size: 10.5px;
+  font-size: 10px;
   font-weight: 500;
-  transition: color 0.15s, background 0.15s;
+  white-space: nowrap;
+  border-bottom: 2px solid transparent;
+  transition: color 0.15s;
 }
 
-.bn-item:active {
-  background: var(--surface);
-}
-
-.bn-item.active {
+.tn-item.active {
   color: var(--accent);
+  border-bottom-color: var(--accent);
 }
 
-.bn-icon svg {
-  width: 22px;
-  height: 22px;
+.tn-icon svg {
+  width: 20px;
+  height: 20px;
   display: block;
+}
+
+/* progress bars (dashboard overview) */
+.bar {
+  height: 8px;
+  background: var(--surface);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.bar > span {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
 }
 
 h1 {

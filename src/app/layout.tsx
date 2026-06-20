@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { auth } from "@/lib/auth";
-import BottomNav from "@/components/BottomNav";
+import TopNav from "@/components/TopNav";
 
 export const metadata: Metadata = {
   title: "Marathon trainer",
@@ -23,8 +23,8 @@ export default async function RootLayout({
   return (
     <html lang="en">
       <body>
+        {session?.user && <TopNav />}
         {children}
-        {session?.user && <BottomNav />}
       </body>
     </html>
   );

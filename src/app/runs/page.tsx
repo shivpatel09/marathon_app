@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
@@ -27,9 +26,6 @@ export default async function RunsPage() {
 
   return (
     <main className="container">
-      <div style={{ marginBottom: "1rem" }}>
-        <Link href="/"><button>← Dashboard</button></Link>
-      </div>
       <h1 style={{ marginBottom: "0.5rem" }}>Recent runs</h1>
       <p className="muted" style={{ marginTop: 0, marginBottom: "1.5rem" }}>
         Your synced Strava activity from the last 8 weeks.

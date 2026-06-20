@@ -105,9 +105,6 @@ export default async function WeekPage({
 
   return (
     <main className="container">
-      <div style={{ marginBottom: "1rem" }}>
-        <Link href="/"><button>← Dashboard</button></Link>
-      </div>
       <WeekView
         planName={instance.template.name}
         totalWeeks={total}

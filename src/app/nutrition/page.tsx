@@ -58,9 +58,6 @@ export default async function NutritionPage() {
   if (!profileComplete(user)) {
     return (
       <main className="container">
-        <div style={{ marginBottom: "1rem" }}>
-          <Link href="/" className="muted" style={{ fontSize: 13 }}>← dashboard</Link>
-        </div>
         <h1>Nutrition setup</h1>
         <p className="muted" style={{ marginBottom: "1.5rem" }}>
           A few details let us estimate your daily calorie and macro targets. We refine them from your weigh-in trend.
@@ -133,9 +130,6 @@ export default async function NutritionPage() {
 
   return (
     <main className="container">
-      <div style={{ marginBottom: "1rem" }}>
-        <Link href="/"><button>← Dashboard</button></Link>
-      </div>
       <div className="row" style={{ marginBottom: "1rem" }}>
         <div>
           <h1 style={{ marginBottom: 2 }}>Nutrition</h1>
