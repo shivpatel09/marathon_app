@@ -34,28 +34,26 @@ export default async function Home() {
         <SignOut />
       </div>
 
-      <nav className="nav">
-        {plan ? (
-          <>
+      {plan ? (
+        <>
+          <p className="muted" style={{ fontSize: 14, marginTop: 0 }}>
+            On <strong>{plan.template.name}</strong> · goal{" "}
+            {Math.floor(plan.goalTimeSec / 3600)}:
+            {String(Math.floor((plan.goalTimeSec % 3600) / 60)).padStart(2, "0")}:
+            {String(plan.goalTimeSec % 60).padStart(2, "0")}
+          </p>
+          <p className="muted" style={{ fontSize: 14 }}>
+            Use the tabs below to jump between your week, runs, strength, nutrition, and weekly review.
+          </p>
+          <nav className="nav">
             <Link href="/week"><button className="primary">This week</button></Link>
-            <Link href="/review"><button>Weekly review</button></Link>
-            <Link href="/strength"><button>Strength</button></Link>
-          </>
-        ) : (
+            <Link href="/setup"><button>Change plan</button></Link>
+          </nav>
+        </>
+      ) : (
+        <nav className="nav">
           <Link href="/setup"><button className="primary">Set up a plan</button></Link>
-        )}
-        <Link href="/runs"><button>Recent runs</button></Link>
-        <Link href="/nutrition"><button>Nutrition</button></Link>
-        <Link href="/setup"><button>Change plan</button></Link>
-      </nav>
-
-      {plan && (
-        <p className="muted" style={{ fontSize: 14, marginTop: 0 }}>
-          On <strong>{plan.template.name}</strong> · goal{" "}
-          {Math.floor(plan.goalTimeSec / 3600)}:
-          {String(Math.floor((plan.goalTimeSec % 3600) / 60)).padStart(2, "0")}:
-          {String(plan.goalTimeSec % 60).padStart(2, "0")}
-        </p>
+        </nav>
       )}
     </main>
   );
