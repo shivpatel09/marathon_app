@@ -22,6 +22,7 @@ model User {
   accounts      Account[]
   sessions      Session[]
   activities    Activity[]
+  planInstances UserPlanInstance[]
 }
 
 model Account {
@@ -94,6 +95,7 @@ model TrainingPlanTemplate {
   longRunCap  Int? // 16 for Hansons, null for Pfitz
   description String?
   mesocycles  Mesocycle[]
+  instances   UserPlanInstance[]
 }
 
 model Mesocycle {
@@ -138,4 +140,49 @@ enum WorkoutType {
   TUNE_UP_RACE
   REST
   CROSS_TRAIN
+}
+
+// ---- Per-user plan instance + the generated dated schedule ----
+
+model UserPlanInstance {
+  id           String               @id @default(cuid())
+  userId       String
+  user         User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  templateId   String
+  template     TrainingPlanTemplate @relation(fields: [templateId], references: [id])
+  raceDate     DateTime
+  goalTimeSec  Int
+  derivedPaces Json // snapshot of resolved paces at creation
+  active       Boolean              @default(true)
+  createdAt    DateTime             @default(now())
+  scheduled    ScheduledWorkout[]
+
+  @@index([userId])
+}
+
+model ScheduledWorkout {
+  id                String           @id @default(cuid())
+  planInstanceId    String
+  planInstance      UserPlanInstance @relation(fields: [planInstanceId], references: [id], onDelete: Cascade)
+  weekIndex         Int
+  dayOfWeek         Int // 0 = Monday .. 6 = Sunday
+  date              DateTime
+  originalDate      DateTime // as first generated; for audit / constraint checks
+  movedByUser       Boolean          @default(false)
+  type              WorkoutType
+  plannedSegments   Json // segments with resolved pace (secPerMile) baked in
+  targetRacePace    Float? // sec/mi, for TUNE_UP_RACE
+  raceDistanceM     Float?
+  status            WorkoutStatus    @default(PLANNED)
+  matchedActivityId String?
+  adherenceScore    Float?
+
+  @@index([planInstanceId, date])
+}
+
+enum WorkoutStatus {
+  PLANNED
+  COMPLETED
+  MISSED
+  PARTIAL
 }
