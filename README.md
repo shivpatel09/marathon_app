@@ -65,12 +65,30 @@ src/app/page.tsx                dashboard (sign-in or activity list)
 src/components/ActivityList.tsx sync button + runs table
 ```
 
-## Notes & next steps
+## Strava webhooks (auto-sync)
+
+New/updated/deleted runs sync automatically via a Strava push subscription —
+no need to press Sync. The callback lives at `/api/strava/webhook`.
+
+Strava requires a **public HTTPS callback**, so this only works when the app is
+deployed (or exposed via a tunnel like `ngrok http 3000`). Setup:
+
+1. Set `STRAVA_WEBHOOK_VERIFY_TOKEN` in `.env` to any random string.
+2. Deploy (or start a tunnel) so `https://<host>/api/strava/webhook` is reachable.
+3. Create the subscription (one per Strava app):
+   ```bash
+   npm run strava:webhook create https://<host>/api/strava/webhook
+   npm run strava:webhook list           # view current subscription
+   npm run strava:webhook delete <id>    # remove it
+   ```
+   Strava validates by GETting the callback (the handshake echoes
+   `hub.challenge`), then POSTs an event on every activity change. The manual
+   **Sync** button on /runs remains as a fallback / backfill.
+
+## Notes
 
 - Strava access tokens expire ~every 6 hours; `getValidAccessToken()` refreshes
   them on demand using the stored refresh token.
-- Sync is currently **manual** (a button). Phase 1+ adds Strava **webhooks** for
-  push updates plus a nightly reconciliation job (see spec §8.1).
-- Next up (Phase 1): plan templates (Pfitz / Hansons), goal-time pace
-  derivation, and generating the dated week view.
+- `upsertActivity()` is shared by the manual sync route and the webhook so both
+  write activities identically.
 ```

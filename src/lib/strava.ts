@@ -100,3 +100,51 @@ export function isRun(a: StravaActivity): boolean {
   const t = `${a.sport_type ?? ""}${a.type ?? ""}`.toLowerCase();
   return t.includes("run");
 }
+
+/** Fetch a single activity by id (used by the webhook). */
+export async function fetchActivity(token: string, id: number | string): Promise<StravaActivity> {
+  const res = await fetch(`${STRAVA_API}/activities/${id}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!res.ok) {
+    throw new Error(`Strava activity fetch failed: ${res.status} ${await res.text()}`);
+  }
+  return (await res.json()) as StravaActivity;
+}
+
+/** Upsert one Strava activity into the DB. Shared by manual sync + webhook. */
+export async function upsertActivity(userId: string, a: StravaActivity): Promise<void> {
+  await prisma.activity.upsert({
+    where: { id: String(a.id) },
+    create: {
+      id: String(a.id),
+      userId,
+      name: a.name,
+      type: a.sport_type ?? a.type,
+      startDate: new Date(a.start_date),
+      distanceM: a.distance,
+      movingTime: a.moving_time,
+      elapsedTime: a.elapsed_time,
+      avgSpeed: a.average_speed ?? null,
+      avgHr: a.average_heartrate ?? null,
+      totalElevation: a.total_elevation_gain ?? null,
+      raw: a as unknown as object,
+    },
+    update: {
+      name: a.name,
+      distanceM: a.distance,
+      movingTime: a.moving_time,
+      avgSpeed: a.average_speed ?? null,
+      avgHr: a.average_heartrate ?? null,
+    },
+  });
+}
+
+/** Resolve a Strava athlete id (owner_id from a webhook event) to our user id. */
+export async function userIdForAthlete(athleteId: number | string): Promise<string | null> {
+  const account = await prisma.account.findFirst({
+    where: { provider: "strava", providerAccountId: String(athleteId) },
+    select: { userId: true },
+  });
+  return account?.userId ?? null;
+}

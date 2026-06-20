@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
-import { getValidAccessToken, fetchActivitiesSince, isRun } from "@/lib/strava";
+import { getValidAccessToken, fetchActivitiesSince, isRun, upsertActivity } from "@/lib/strava";
 
 const EIGHT_WEEKS_SECONDS = 8 * 7 * 24 * 3600;
 
@@ -20,30 +19,7 @@ export async function POST() {
     let synced = 0;
     for (const a of activities) {
       if (!isRun(a)) continue;
-      await prisma.activity.upsert({
-        where: { id: String(a.id) },
-        create: {
-          id: String(a.id),
-          userId,
-          name: a.name,
-          type: a.sport_type ?? a.type,
-          startDate: new Date(a.start_date),
-          distanceM: a.distance,
-          movingTime: a.moving_time,
-          elapsedTime: a.elapsed_time,
-          avgSpeed: a.average_speed ?? null,
-          avgHr: a.average_heartrate ?? null,
-          totalElevation: a.total_elevation_gain ?? null,
-          raw: a as unknown as object,
-        },
-        update: {
-          name: a.name,
-          distanceM: a.distance,
-          movingTime: a.moving_time,
-          avgSpeed: a.average_speed ?? null,
-          avgHr: a.average_heartrate ?? null,
-        },
-      });
+      await upsertActivity(userId, a);
       synced++;
     }
 
