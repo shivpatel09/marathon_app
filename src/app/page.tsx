@@ -62,6 +62,7 @@ export default async function Home() {
         ) : (
           <Link href="/setup"><button className="primary">Set up a plan</button></Link>
         )}
+        <Link href="/nutrition"><button>Nutrition</button></Link>
         <Link href="/setup"><button>Change plan</button></Link>
       </nav>
 

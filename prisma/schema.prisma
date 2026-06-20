@@ -19,10 +19,20 @@ model User {
   email         String?    @unique
   emailVerified DateTime?
   image         String?
+  // nutrition profile (lightweight; see spec §9.4)
+  weightKg             Float?
+  heightCm             Float?
+  age                  Int?
+  sex                  Sex?
+  bodyCompGoal         BodyCompGoal?
+  weeklyWeightChangeKg Float? // target rate, e.g. -0.25 (negative = lose)
+  baselineActivity     ActivityLevel?
+  dietaryPrefs         String[]
   accounts      Account[]
   sessions      Session[]
   activities    Activity[]
   planInstances UserPlanInstance[]
+  checkIns      DailyCheckIn[]
 }
 
 model Account {
@@ -186,4 +196,49 @@ enum WorkoutStatus {
   COMPLETED
   MISSED
   PARTIAL
+}
+
+// ---- Nutrition: lightweight daily check-in (estimate + correct) ----
+
+model DailyCheckIn {
+  id           String        @id @default(cuid())
+  userId       String
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  date         DateTime // calendar day (midnight)
+  weightKg     Float? // morning weigh-in; trend is what matters
+  intakeSignal IntakeSignal?
+  estCalories  Int? // optional rough self-report
+  proteinHit   Boolean? // hit protein target?
+  energyLevel  Int? // 1..5
+  soreness     Int? // 1..5
+  sleepHours   Float?
+  notes        String?
+  createdAt    DateTime      @default(now())
+
+  @@unique([userId, date])
+  @@index([userId, date])
+}
+
+enum Sex {
+  MALE
+  FEMALE
+}
+
+enum BodyCompGoal {
+  MAINTAIN
+  LOSE_FAT
+  GAIN
+}
+
+enum ActivityLevel {
+  SEDENTARY
+  LIGHT
+  MODERATE
+  ACTIVE
+}
+
+enum IntakeSignal {
+  UNDER
+  ON_TARGET
+  OVER
 }
