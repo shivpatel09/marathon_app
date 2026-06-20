@@ -1,8 +1,10 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
 import { getActivePlanInstance } from "@/lib/plan";
 import { weekConstraintWarnings } from "@/lib/schedule";
+import { buildWeekStrength, phaseForMesocycle, type ExerciseInfo, type SessionTemplate } from "@/lib/strength";
 import type { DerivedPaces } from "@/lib/paces";
 import WeekView from "@/components/WeekView";
 import type { DayWorkout } from "@/components/WeekDays";
@@ -54,10 +56,35 @@ export default async function WeekPage({
   const requested = searchParams.week ? Number(searchParams.week) : computed;
   const weekIndex = Math.min(Math.max(requested || computed, 1), total);
 
-  const mesocycle =
-    instance.template.mesocycles.find((m) => weekIndex >= m.startWeek && weekIndex <= m.endWeek)?.name ?? "";
+  const meso = instance.template.mesocycles.find((m) => weekIndex >= m.startWeek && weekIndex <= m.endWeek);
+  const mesocycle = meso?.name ?? "";
 
   const daysToRace = Math.max(0, Math.ceil((+instance.raceDate - +todayMid) / 86400000));
+
+  // recommended strength sessions for this week, keyed by day
+  const weekForStrength = instance.scheduled
+    .filter((s) => s.weekIndex === weekIndex)
+    .map((s) => ({ dayOfWeek: s.dayOfWeek, type: s.type }));
+  const [exerciseRows, sessionRows] = await Promise.all([
+    prisma.strengthExercise.findMany(),
+    prisma.strengthSessionTemplate.findMany({ orderBy: { order: "asc" } }),
+  ]);
+  const exercises = new Map<string, ExerciseInfo>(
+    exerciseRows.map((e) => [e.key, { key: e.key, name: e.name, pattern: e.pattern, equipment: e.equipment, cues: e.cues }]),
+  );
+  const sessions = sessionRows.map((s) => ({
+    phase: s.phase,
+    slot: s.slot,
+    name: s.name,
+    order: s.order,
+    items: s.items as unknown as SessionTemplate["items"],
+  }));
+  const strengthByDay = new Map(
+    buildWeekStrength(weekForStrength, phaseForMesocycle(meso?.order ?? 1), sessions, exercises).map((s) => [
+      s.dayOfWeek,
+      s.name,
+    ]),
+  );
 
   const days: DayWorkout[] = instance.scheduled
     .filter((s) => s.weekIndex === weekIndex)
@@ -68,6 +95,7 @@ export default async function WeekPage({
       date: s.date.toISOString(),
       type: s.type,
       plannedSegments: (s.plannedSegments as DayWorkout["plannedSegments"]) ?? [],
+      strength: strengthByDay.get(s.dayOfWeek),
     }));
 
   const warnings = weekConstraintWarnings(days.map((d) => ({ dayOfWeek: d.dayOfWeek, type: d.type })));

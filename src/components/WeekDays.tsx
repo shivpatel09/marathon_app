@@ -23,6 +23,7 @@ export interface DayWorkout {
   date: string; // ISO
   type: string;
   plannedSegments: Segment[];
+  strength?: string; // recommended strength session name, if any
 }
 
 const TYPE_LABEL: Record<string, string> = {
@@ -143,8 +144,15 @@ export default function WeekDays({ days }: { days: DayWorkout[] }) {
               <div className="day-date">{date}</div>
             </div>
             <div className="day-body">
-              <span className="type-pill" style={{ background: c.bg, color: c.fg }}>
-                {TYPE_LABEL[d.type] ?? d.type.toLowerCase()}
+              <span style={{ display: "inline-flex", gap: 6, flexWrap: "wrap", alignItems: "center" }}>
+                <span className="type-pill" style={{ background: c.bg, color: c.fg }}>
+                  {TYPE_LABEL[d.type] ?? d.type.toLowerCase()}
+                </span>
+                {d.strength && (
+                  <span className="type-pill" style={{ background: "#EEEDFE", color: "#3C3489" }}>
+                    + strength: {d.strength}
+                  </span>
+                )}
               </span>
               {detail && <div className="day-detail">{detail}</div>}
             </div>
