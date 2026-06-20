@@ -47,6 +47,41 @@ export function daysBeforeRace(weeks: number, weekIndex: number, dayOfWeek: numb
   return (weeks - weekIndex) * 7 + (6 - dayOfWeek);
 }
 
+// ---- constraint checks for user-rescheduled weeks (warn, don't block) ----
+
+const QUALITY_TYPES = new Set([
+  "VO2MAX",
+  "SPEED",
+  "TEMPO_LT",
+  "MARATHON_PACE",
+  "STRENGTH_INTERVALS",
+  "TUNE_UP_RACE",
+  "RACE",
+]);
+const DAY_NAMES = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+
+export function weekConstraintWarnings(days: { dayOfWeek: number; type: string }[]): string[] {
+  const sorted = [...days].sort((a, b) => a.dayOfWeek - b.dayOfWeek);
+  const warnings: string[] = [];
+
+  for (let i = 0; i < sorted.length - 1; i++) {
+    const a = sorted[i];
+    const b = sorted[i + 1];
+    if (b.dayOfWeek - a.dayOfWeek === 1 && QUALITY_TYPES.has(a.type) && QUALITY_TYPES.has(b.type)) {
+      warnings.push(
+        `${DAY_NAMES[a.dayOfWeek]} and ${DAY_NAMES[b.dayOfWeek]} are both hard days — leave an easy day between quality sessions.`,
+      );
+    }
+  }
+
+  const long = sorted.find((d) => d.type === "LONG" || d.type === "RACE");
+  if (long && long.dayOfWeek < 5) {
+    warnings.push(`Your long run is on ${DAY_NAMES[long.dayOfWeek]} — long runs usually sit best on the weekend.`);
+  }
+
+  return warnings;
+}
+
 export function generateSchedule(
   workouts: TemplateWorkout[],
   weeks: number,

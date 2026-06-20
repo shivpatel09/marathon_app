@@ -2,8 +2,10 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { getActivePlanInstance } from "@/lib/plan";
+import { weekConstraintWarnings } from "@/lib/schedule";
 import type { DerivedPaces } from "@/lib/paces";
-import WeekView, { DayWorkout } from "@/components/WeekView";
+import WeekView from "@/components/WeekView";
+import type { DayWorkout } from "@/components/WeekDays";
 
 function formatGoal(sec: number): string {
   const h = Math.floor(sec / 3600);
@@ -61,11 +63,14 @@ export default async function WeekPage({
     .filter((s) => s.weekIndex === weekIndex)
     .sort((a, b) => a.dayOfWeek - b.dayOfWeek)
     .map((s) => ({
+      id: s.id,
       dayOfWeek: s.dayOfWeek,
       date: s.date.toISOString(),
       type: s.type,
       plannedSegments: (s.plannedSegments as DayWorkout["plannedSegments"]) ?? [],
     }));
+
+  const warnings = weekConstraintWarnings(days.map((d) => ({ dayOfWeek: d.dayOfWeek, type: d.type })));
 
   return (
     <main className="container">
@@ -81,6 +86,7 @@ export default async function WeekPage({
         daysToRace={daysToRace}
         paces={instance.derivedPaces as unknown as DerivedPaces}
         days={days}
+        warnings={warnings}
       />
     </main>
   );
