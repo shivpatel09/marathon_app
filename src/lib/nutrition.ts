@@ -4,6 +4,15 @@
 
 const KCAL_PER_KG_FAT = 7700; // energy in 1 kg of body mass change
 const KM_PER_MILE = 1.60934;
+const LB_PER_KG = 2.20462;
+
+// weight is stored in kg (Mifflin-St Jeor needs metric) but shown/entered in lb
+export function kgToLb(kg: number): number {
+  return kg * LB_PER_KG;
+}
+export function lbToKg(lb: number): number {
+  return lb / LB_PER_KG;
+}
 
 export type Sex = "MALE" | "FEMALE";
 export type BodyCompGoal = "MAINTAIN" | "LOSE_FAT" | "GAIN";

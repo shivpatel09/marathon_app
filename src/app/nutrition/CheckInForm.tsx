@@ -6,7 +6,7 @@ export default function CheckInForm({ today }: { today: string }) {
       <div className="card-h">today&apos;s check-in</div>
       <div className="goal-row">
         <label>date<input type="date" name="date" defaultValue={today} /></label>
-        <label>morning weight (kg)<input type="number" name="weightKg" step="0.1" style={{ width: 110 }} /></label>
+        <label>morning weight (lb)<input type="number" name="weightLb" step="0.1" style={{ width: 110 }} /></label>
         <label>intake felt
           <select name="intakeSignal" defaultValue="ON_TARGET">
             <option value="UNDER">under</option>

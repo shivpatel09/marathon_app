@@ -1,4 +1,7 @@
 import { saveProfile } from "./actions";
+import { kgToLb } from "@/lib/nutrition";
+
+const round1 = (n: number) => Math.round(n * 10) / 10;
 
 export interface ProfileDefaults {
   weightKg: number | null;
@@ -16,7 +19,7 @@ export default function ProfileForm({ defaults }: { defaults: ProfileDefaults })
     <form action={saveProfile}>
       <h3 className="step">your details</h3>
       <div className="goal-row">
-        <label>weight (kg)<input type="number" name="weightKg" step="0.1" defaultValue={defaults.weightKg ?? ""} required /></label>
+        <label>weight (lb)<input type="number" name="weightLb" step="0.1" defaultValue={defaults.weightKg != null ? round1(kgToLb(defaults.weightKg)) : ""} required /></label>
         <label>height (cm)<input type="number" name="heightCm" step="0.1" defaultValue={defaults.heightCm ?? ""} required /></label>
         <label>age<input type="number" name="age" defaultValue={defaults.age ?? ""} required /></label>
         <label>sex
@@ -44,8 +47,8 @@ export default function ProfileForm({ defaults }: { defaults: ProfileDefaults })
             <option value="GAIN">gain</option>
           </select>
         </label>
-        <label>target change (kg/week)
-          <input type="number" name="weeklyWeightChangeKg" step="0.25" defaultValue={defaults.weeklyWeightChangeKg ?? 0} />
+        <label>target change (lb/week)
+          <input type="number" name="weeklyWeightChangeLb" step="0.5" defaultValue={defaults.weeklyWeightChangeKg != null ? round1(kgToLb(defaults.weeklyWeightChangeKg)) : 0} />
         </label>
       </div>
 

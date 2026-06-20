@@ -1,4 +1,6 @@
-import type { DailyTargets, TrendAnalysis } from "@/lib/nutrition";
+import { kgToLb, type DailyTargets, type TrendAnalysis } from "@/lib/nutrition";
+
+const round1 = (n: number) => Math.round(n * 10) / 10;
 
 export interface WeighIn {
   date: string; // ISO
@@ -88,9 +90,11 @@ export default function NutritionView({
           {trend.weeklyChangeKg != null && (
             <div>
               <div style={{ fontSize: "1.2rem", fontWeight: 600 }}>
-                {trend.weeklyChangeKg > 0 ? "+" : ""}{trend.weeklyChangeKg} kg/wk
+                {trend.weeklyChangeKg > 0 ? "+" : ""}{round1(kgToLb(trend.weeklyChangeKg))} lb/wk
               </div>
-              <div className="muted" style={{ fontSize: 12 }}>goal {trend.goalChangeKg > 0 ? "+" : ""}{trend.goalChangeKg} kg/wk</div>
+              <div className="muted" style={{ fontSize: 12 }}>
+                goal {trend.goalChangeKg > 0 ? "+" : ""}{round1(kgToLb(trend.goalChangeKg))} lb/wk
+              </div>
             </div>
           )}
         </div>
@@ -108,7 +112,7 @@ export default function NutritionView({
               {recent.map((c) => (
                 <tr key={c.date}>
                   <td>{new Date(c.date).toLocaleDateString("en-US", { month: "short", day: "numeric" })}</td>
-                  <td className="num">{c.weightKg != null ? `${c.weightKg} kg` : "—"}</td>
+                  <td className="num">{c.weightKg != null ? `${round1(kgToLb(c.weightKg))} lb` : "—"}</td>
                   <td>{c.intakeSignal ? c.intakeSignal.toLowerCase().replace("_", " ") : "—"}</td>
                   <td className="num">{c.energyLevel ?? "—"}</td>
                   <td>{c.proteinHit ? "✓" : "—"}</td>
