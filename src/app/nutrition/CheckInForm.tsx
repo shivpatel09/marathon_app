@@ -1,29 +1,57 @@
+"use client";
+
+import { useState } from "react";
 import { saveCheckIn } from "./actions";
 
-export default function CheckInForm({ today }: { today: string }) {
+export default function CheckInForm({ today, loggedToday }: { today: string; loggedToday: boolean }) {
+  const [open, setOpen] = useState(false);
+
   return (
-    <form action={saveCheckIn} className="card" style={{ marginTop: "1rem" }}>
-      <div className="card-h">today&apos;s check-in</div>
-      <div className="goal-row">
-        <label>date<input type="date" name="date" defaultValue={today} /></label>
-        <label>morning weight (lb)<input type="number" name="weightLb" step="0.1" style={{ width: 110 }} /></label>
-        <label>intake felt
-          <select name="intakeSignal" defaultValue="ON_TARGET">
-            <option value="UNDER">under</option>
-            <option value="ON_TARGET">on target</option>
-            <option value="OVER">over</option>
-          </select>
-        </label>
-        <label>energy (1-5)<input type="number" name="energyLevel" min="1" max="5" style={{ width: 70 }} /></label>
-        <label>sleep (h)<input type="number" name="sleepHours" step="0.5" style={{ width: 80 }} /></label>
-      </div>
-      <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: "0.85rem", margin: "10px 0", color: "var(--muted)" }}>
-        <input type="checkbox" name="proteinHit" style={{ width: "auto" }} /> hit protein target
-      </label>
-      <input type="text" name="notes" placeholder="notes (optional)" style={{ width: "100%", maxWidth: 420 }} />
-      <div style={{ marginTop: "0.9rem" }}>
-        <button type="submit" className="primary">Log check-in</button>
-      </div>
-    </form>
+    <div className="card checkin-card">
+      <button type="button" className="checkin-toggle" onClick={() => setOpen(!open)} aria-expanded={open}>
+        <span>{loggedToday ? "Update today’s check-in" : "Log today’s check-in"}</span>
+        <span className="checkin-chevron">{open ? "✕" : "+"}</span>
+      </button>
+
+      {open && (
+        <form action={saveCheckIn} className="checkin-form">
+          <input type="hidden" name="date" value={today} />
+          <div className="checkin-grid">
+            <label>
+              morning weight (lb)
+              <input type="number" name="weightLb" step="0.1" placeholder="—" />
+            </label>
+            <label>
+              intake felt
+              <select name="intakeSignal" defaultValue="ON_TARGET">
+                <option value="UNDER">under target</option>
+                <option value="ON_TARGET">on target</option>
+                <option value="OVER">over target</option>
+              </select>
+            </label>
+            <label>
+              energy (1–5)
+              <input type="number" name="energyLevel" min="1" max="5" placeholder="—" />
+            </label>
+            <label>
+              sleep (hrs)
+              <input type="number" name="sleepHours" step="0.5" placeholder="—" />
+            </label>
+          </div>
+
+          <label className="checkin-protein">
+            <input type="checkbox" name="proteinHit" />
+            hit protein target
+          </label>
+
+          <input type="text" name="notes" placeholder="notes (optional)" className="checkin-notes" />
+
+          <div className="checkin-actions">
+            <button type="submit" className="primary">Save check-in</button>
+            <button type="button" onClick={() => setOpen(false)}>Cancel</button>
+          </div>
+        </form>
+      )}
+    </div>
   );
 }

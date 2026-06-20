@@ -90,6 +90,88 @@ body {
   display: block;
 }
 
+/* nutrition daily check-in card (collapsible) */
+.checkin-card {
+  margin-bottom: 1.25rem;
+  padding: 0;
+  overflow: hidden;
+}
+
+.checkin-toggle {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: none;
+  border: none;
+  border-radius: 0;
+  padding: 14px 16px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--fg);
+  cursor: pointer;
+}
+
+.checkin-toggle:hover {
+  background: var(--surface);
+}
+
+.checkin-chevron {
+  width: 24px;
+  height: 24px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--accent);
+  color: #fff;
+  font-size: 14px;
+  line-height: 1;
+}
+
+.checkin-form {
+  padding: 4px 16px 16px;
+  border-top: 1px solid var(--border);
+}
+
+.checkin-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 12px;
+  margin: 12px 0;
+}
+
+.checkin-grid label {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.checkin-protein {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.85rem;
+  color: var(--muted);
+  margin: 4px 0 12px;
+}
+
+.checkin-protein input {
+  width: auto;
+}
+
+.checkin-notes {
+  width: 100%;
+  margin-bottom: 12px;
+}
+
+.checkin-actions {
+  display: flex;
+  gap: 8px;
+}
+
 /* progress bars (dashboard overview) */
 .bar {
   height: 8px;

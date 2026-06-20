@@ -127,6 +127,7 @@ export default async function NutritionPage() {
       energyLevel: c.energyLevel,
       proteinHit: c.proteinHit,
     }));
+  const loggedToday = checkIns.some((c) => c.date.toISOString().slice(0, 10) === todayKey);
 
   return (
     <main className="container">
@@ -140,8 +141,8 @@ export default async function NutritionPage() {
         <Link href="/nutrition/profile" className="muted" style={{ fontSize: 13 }}>edit profile</Link>
       </div>
 
+      <CheckInForm today={todayKey} loggedToday={loggedToday} />
       <NutritionView targets={targets} trend={trend} todayLabel={todayLabel} weighIns={weighIns} recent={recent} />
-      <CheckInForm today={todayKey} />
     </main>
   );
 }
