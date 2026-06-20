@@ -55,7 +55,10 @@ export default async function Home() {
 
       <nav className="nav">
         {plan ? (
-          <Link href="/week"><button className="primary">This week</button></Link>
+          <>
+            <Link href="/week"><button className="primary">This week</button></Link>
+            <Link href="/review"><button>Weekly review</button></Link>
+          </>
         ) : (
           <Link href="/setup"><button className="primary">Set up a plan</button></Link>
         )}

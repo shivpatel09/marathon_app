@@ -292,3 +292,72 @@ th.num {
   color: var(--muted);
   font-variant-numeric: tabular-nums;
 }
+
+/* weekly review */
+.coach-card {
+  display: flex;
+  gap: 13px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px 16px;
+  margin-bottom: 1rem;
+}
+
+.coach-icon {
+  flex: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--surface);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--accent);
+  font-size: 16px;
+}
+
+.two-col {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 12px;
+}
+
+.card {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px 16px;
+}
+
+.card-h {
+  font-size: 0.9rem;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.li {
+  display: flex;
+  gap: 9px;
+  align-items: flex-start;
+  font-size: 0.85rem;
+  padding: 4px 0;
+  line-height: 1.45;
+}
+
+.li .ok {
+  color: #1d9e75;
+  font-weight: 600;
+}
+
+.li .warn {
+  color: #ba7517;
+  font-weight: 600;
+}
+
+.adjust {
+  font-size: 0.85rem;
+  background: var(--surface);
+  border-radius: 8px;
+  padding: 9px 12px;
+  margin-top: 10px;
+  line-height: 1.5;
+}

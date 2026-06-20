@@ -13,12 +13,14 @@
     "db:studio": "prisma studio"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.105.0",
     "@auth/prisma-adapter": "^2.4.2",
     "@prisma/client": "^5.18.0",
     "next": "^14.2.5",
     "next-auth": "^5.0.0-beta.20",
     "react": "^18.3.1",
-    "react-dom": "^18.3.1"
+    "react-dom": "^18.3.1",
+    "zod": "^3.23.8"
   },
   "devDependencies": {
     "@types/node": "^20.14.15",
