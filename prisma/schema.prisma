@@ -78,3 +78,64 @@ model Activity {
 
   @@index([userId, startDate])
 }
+
+// ---- Training plan templates (the proven programs) ----
+// Intensity is stored as an abstract `paceRef` in workout segments and resolved
+// per-user from their goal time at plan-instance time (see src/lib/paces.ts).
+
+model TrainingPlanTemplate {
+  id          String      @id @default(cuid())
+  key         String      @unique // stable slug, e.g. "pfitz-18-55"
+  name        String // "Pfitzinger 18/55"
+  author      String
+  weeks       Int
+  daysPerWeek Int
+  peakMileage Int
+  longRunCap  Int? // 16 for Hansons, null for Pfitz
+  description String?
+  mesocycles  Mesocycle[]
+}
+
+model Mesocycle {
+  id         String               @id @default(cuid())
+  templateId String
+  template   TrainingPlanTemplate @relation(fields: [templateId], references: [id], onDelete: Cascade)
+  name       String // "Endurance", "Speed phase", "Taper"...
+  startWeek  Int
+  endWeek    Int
+  order      Int
+  workouts   WorkoutTemplate[]
+
+  @@index([templateId])
+}
+
+model WorkoutTemplate {
+  id          String      @id @default(cuid())
+  mesocycleId String
+  mesocycle   Mesocycle   @relation(fields: [mesocycleId], references: [id], onDelete: Cascade)
+  weekIndex   Int // 1..weeks
+  dayOfWeek   Int // 0 = Monday .. 6 = Sunday
+  type        WorkoutType
+  isDouble    Boolean     @default(false)
+  segments    Json // [{ paceRef, value, unit, reps?, ... }]
+
+  @@unique([mesocycleId, weekIndex, dayOfWeek])
+  @@index([mesocycleId])
+}
+
+enum WorkoutType {
+  RECOVERY
+  EASY
+  GENERAL_AEROBIC
+  MEDIUM_LONG
+  LONG
+  MARATHON_PACE
+  TEMPO_LT
+  VO2MAX
+  SPEED
+  STRENGTH_INTERVALS
+  STRIDES
+  TUNE_UP_RACE
+  REST
+  CROSS_TRAIN
+}
