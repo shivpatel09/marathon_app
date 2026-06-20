@@ -70,9 +70,7 @@ export default async function WeekPage({
   return (
     <main className="container">
       <div style={{ marginBottom: "1rem" }}>
-        <Link href="/" className="muted" style={{ fontSize: 13 }}>
-          ← dashboard
-        </Link>
+        <Link href="/"><button>← Dashboard</button></Link>
       </div>
       <WeekView
         planName={instance.template.name}

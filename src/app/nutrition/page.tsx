@@ -132,6 +132,9 @@ export default async function NutritionPage() {
 
   return (
     <main className="container">
+      <div style={{ marginBottom: "1rem" }}>
+        <Link href="/"><button>← Dashboard</button></Link>
+      </div>
       <div className="row" style={{ marginBottom: "1rem" }}>
         <div>
           <h1 style={{ marginBottom: 2 }}>Nutrition</h1>

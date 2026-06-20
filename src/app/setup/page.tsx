@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
@@ -23,6 +24,9 @@ export default async function SetupPage() {
 
   return (
     <main className="container">
+      <div style={{ marginBottom: "1rem" }}>
+        <Link href="/"><button>← Dashboard</button></Link>
+      </div>
       <h1>Set up your plan</h1>
       <p className="muted" style={{ marginBottom: "1.5rem" }}>
         Pick a program and enter your goal — we derive every pace and date.
