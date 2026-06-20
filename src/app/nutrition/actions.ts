@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import { ActivityLevel, BodyCompGoal, IntakeSignal, Sex } from "@prisma/client";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { lbToKg } from "@/lib/nutrition";
+import { feetInchesToCm, lbToKg } from "@/lib/nutrition";
 
 function num(v: FormDataEntryValue | null): number | null {
   const n = parseFloat(String(v ?? ""));
@@ -26,11 +26,15 @@ export async function saveProfile(formData: FormData) {
     .map((s) => s.trim())
     .filter(Boolean);
 
+  const ft = num(formData.get("heightFeet"));
+  const inch = num(formData.get("heightInches"));
+  const heightCm = ft != null || inch != null ? feetInchesToCm(ft ?? 0, inch ?? 0) : null;
+
   await prisma.user.update({
     where: { id: session.user.id },
     data: {
       weightKg: lb(formData.get("weightLb")),
-      heightCm: num(formData.get("heightCm")),
+      heightCm,
       age: num(formData.get("age")),
       sex: (String(formData.get("sex")) as Sex) || null,
       baselineActivity: (String(formData.get("baselineActivity")) as ActivityLevel) || null,

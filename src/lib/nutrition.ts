@@ -14,6 +14,22 @@ export function lbToKg(lb: number): number {
   return lb / LB_PER_KG;
 }
 
+// height is stored in cm but shown/entered as feet + inches
+const CM_PER_INCH = 2.54;
+export function cmToFeetInches(cm: number): { feet: number; inches: number } {
+  const totalIn = cm / CM_PER_INCH;
+  let feet = Math.floor(totalIn / 12);
+  let inches = Math.round(totalIn - feet * 12);
+  if (inches === 12) {
+    feet += 1;
+    inches = 0;
+  }
+  return { feet, inches };
+}
+export function feetInchesToCm(feet: number, inches: number): number {
+  return (feet * 12 + inches) * CM_PER_INCH;
+}
+
 export type Sex = "MALE" | "FEMALE";
 export type BodyCompGoal = "MAINTAIN" | "LOSE_FAT" | "GAIN";
 export type ActivityLevel = "SEDENTARY" | "LIGHT" | "MODERATE" | "ACTIVE";

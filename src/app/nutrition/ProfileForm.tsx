@@ -1,5 +1,5 @@
 import { saveProfile } from "./actions";
-import { kgToLb } from "@/lib/nutrition";
+import { cmToFeetInches, kgToLb } from "@/lib/nutrition";
 
 const round1 = (n: number) => Math.round(n * 10) / 10;
 
@@ -15,12 +15,18 @@ export interface ProfileDefaults {
 }
 
 export default function ProfileForm({ defaults }: { defaults: ProfileDefaults }) {
+  const h = defaults.heightCm != null ? cmToFeetInches(defaults.heightCm) : null;
   return (
     <form action={saveProfile}>
       <h3 className="step">your details</h3>
       <div className="goal-row">
         <label>weight (lb)<input type="number" name="weightLb" step="0.1" defaultValue={defaults.weightKg != null ? round1(kgToLb(defaults.weightKg)) : ""} required /></label>
-        <label>height (cm)<input type="number" name="heightCm" step="0.1" defaultValue={defaults.heightCm ?? ""} required /></label>
+        <label>height
+          <div style={{ display: "flex", gap: 6 }}>
+            <input type="number" name="heightFeet" min="3" max="8" placeholder="ft" defaultValue={h ? h.feet : ""} style={{ width: 64 }} required />
+            <input type="number" name="heightInches" min="0" max="11" placeholder="in" defaultValue={h ? h.inches : ""} style={{ width: 64 }} required />
+          </div>
+        </label>
         <label>age<input type="number" name="age" defaultValue={defaults.age ?? ""} required /></label>
         <label>sex
           <select name="sex" defaultValue={defaults.sex ?? "MALE"}>
