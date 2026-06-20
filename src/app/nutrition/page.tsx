@@ -123,6 +123,7 @@ export default async function NutritionPage() {
     .slice(-7)
     .reverse()
     .map((c) => ({
+      id: c.id,
       date: c.date.toISOString(),
       weightKg: c.weightKg,
       intakeSignal: c.intakeSignal,

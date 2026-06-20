@@ -1,4 +1,5 @@
 import { kgToLb, type DailyTargets, type TrendAnalysis } from "@/lib/nutrition";
+import { deleteCheckIn } from "@/app/nutrition/actions";
 
 const round1 = (n: number) => Math.round(n * 10) / 10;
 
@@ -7,6 +8,7 @@ export interface WeighIn {
   weightKg: number;
 }
 export interface CheckInRow {
+  id: string;
   date: string;
   weightKg: number | null;
   intakeSignal: string | null;
@@ -106,16 +108,29 @@ export default function NutritionView({
           <div className="card-h">recent check-ins</div>
           <table>
             <thead>
-              <tr><th>date</th><th className="num">weight</th><th>intake</th><th className="num">energy</th><th>protein</th></tr>
+              <tr><th>date</th><th className="num">weight</th><th>intake</th><th className="num">energy</th><th>protein</th><th></th></tr>
             </thead>
             <tbody>
               {recent.map((c) => (
-                <tr key={c.date}>
+                <tr key={c.id}>
                   <td>{new Date(c.date).toLocaleDateString("en-US", { month: "short", day: "numeric" })}</td>
                   <td className="num">{c.weightKg != null ? `${round1(kgToLb(c.weightKg))} lb` : "—"}</td>
                   <td>{c.intakeSignal ? c.intakeSignal.toLowerCase().replace("_", " ") : "—"}</td>
                   <td className="num">{c.energyLevel ?? "—"}</td>
                   <td>{c.proteinHit ? "✓" : "—"}</td>
+                  <td className="num">
+                    <form action={deleteCheckIn}>
+                      <input type="hidden" name="id" value={c.id} />
+                      <button
+                        type="submit"
+                        aria-label="delete check-in"
+                        title="delete"
+                        style={{ border: "none", background: "none", color: "var(--muted)", cursor: "pointer", padding: "2px 6px", fontSize: "1rem" }}
+                      >
+                        ×
+                      </button>
+                    </form>
+                  </td>
                 </tr>
               ))}
             </tbody>

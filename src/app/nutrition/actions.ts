@@ -69,3 +69,13 @@ export async function saveCheckIn(formData: FormData) {
 
   revalidatePath("/nutrition");
 }
+
+export async function deleteCheckIn(formData: FormData) {
+  const session = await auth();
+  if (!session?.user?.id) throw new Error("unauthorized");
+  const id = String(formData.get("id") ?? "");
+  if (!id) return;
+  // userId guard: a user can only delete their own check-ins
+  await prisma.dailyCheckIn.deleteMany({ where: { id, userId: session.user.id } });
+  revalidatePath("/nutrition");
+}
