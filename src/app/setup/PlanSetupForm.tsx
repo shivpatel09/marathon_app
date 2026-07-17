@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { createPlan } from "./actions";
 import { derivePaces, parseGoalTime, formatPace } from "@/lib/paces";
+import { hansonsPacesFor, hansonsStrip } from "@/lib/hansonsPaces";
 
 export interface TemplateOption {
   key: string;
@@ -21,6 +22,7 @@ export default function PlanSetupForm({ templates }: { templates: TemplateOption
 
   const goalSec = parseGoalTime(goal);
   const paces = goalSec ? derivePaces(goalSec) : null;
+  const hansons = selected === "hansons-indy" && goalSec ? hansonsPacesFor(goalSec) : null;
 
   return (
     <form action={createPlan}>
@@ -66,26 +68,44 @@ export default function PlanSetupForm({ templates }: { templates: TemplateOption
         </label>
       </div>
 
-      <h3 className="step">3 · your derived paces <span className="muted">/ mi</span></h3>
-      <div className="pace-grid">
-        {paces ? (
-          [
-            ["marathon", paces.marathon],
-            ["threshold", paces.lt],
-            ["5K / VO₂", paces.vo2max],
-            ["easy", paces.easy],
-            ["long", paces.long],
-            ["recovery", paces.recovery],
-          ].map(([label, sec]) => (
-            <div className="pace" key={label as string}>
-              <div className="pacev">{formatPace(sec as number)}</div>
-              <div className="pacel">{label as string}</div>
-            </div>
-          ))
-        ) : (
-          <p className="muted">Enter a valid goal time (h:mm:ss) to see paces.</p>
-        )}
-      </div>
+      <h3 className="step">
+        3 · your {hansons ? "Hansons" : "derived"} paces <span className="muted">/ mi</span>
+      </h3>
+      {hansons ? (
+        <>
+          <div className="pace-grid">
+            {hansonsStrip(hansons).map((z) => (
+              <div className="pace" key={z.label}>
+                <div className="pacev">{z.value}</div>
+                <div className="pacel">{z.label}</div>
+              </div>
+            ))}
+          </div>
+          <p className="muted" style={{ fontSize: 12.5, marginTop: 8 }}>
+            Taken from your Indy spreadsheet&apos;s pace table (calibrated for 3:55–4:10 goals; interpolated in between).
+          </p>
+        </>
+      ) : (
+        <div className="pace-grid">
+          {paces ? (
+            [
+              ["marathon", paces.marathon],
+              ["threshold", paces.lt],
+              ["5K / VO₂", paces.vo2max],
+              ["easy", paces.easy],
+              ["long", paces.long],
+              ["recovery", paces.recovery],
+            ].map(([label, sec]) => (
+              <div className="pace" key={label as string}>
+                <div className="pacev">{formatPace(sec as number)}</div>
+                <div className="pacel">{label as string}</div>
+              </div>
+            ))
+          ) : (
+            <p className="muted">Enter a valid goal time (h:mm:ss) to see paces.</p>
+          )}
+        </div>
+      )}
 
       <button type="submit" className="primary" style={{ marginTop: "1.5rem" }} disabled={!paces}>
         Create my plan

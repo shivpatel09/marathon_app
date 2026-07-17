@@ -31,6 +31,7 @@ export interface DayWorkout {
   date: string; // ISO
   type: string;
   label?: string | null;
+  pace?: string | null;
   plannedSegments: Segment[];
   strength?: { name: string; items: StrengthItem[] };
 }
@@ -223,6 +224,7 @@ export default function WeekDays({ days }: { days: DayWorkout[] }) {
                   )}
                 </span>
                 {detail && <div className="day-detail">{detail}</div>}
+                {d.pace && <div className="day-pace">@ {d.pace}/mi</div>}
                 {d.strength && openStrength === d.id && (
                   <div style={{ marginTop: 8, paddingTop: 8, borderTop: "1px solid var(--border)" }}>
                     {d.strength.items.map((it, i) => (

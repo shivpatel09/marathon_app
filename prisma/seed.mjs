@@ -64,6 +64,42 @@ function pfitz() {
   };
 }
 
+// ---- Hansons (Indy Monumental) ----
+// Faithful transcription of the user's Indy_Hansons spreadsheet
+// (prisma/hansons-plan.json): 17 weeks, race on the final Saturday, each day
+// carries its exact workout `label`; segments hold the planned mileage so
+// weekly/plan totals still compute. The spreadsheet uses Sunday-start weeks;
+// here each row maps to one Monday-start app week (its Sunday easy run sorts to
+// the end of the week), so weekly mileage totals match the sheet row-for-row.
+function hansonsIndy() {
+  const days = JSON.parse(readFileSync(new URL("./hansons-plan.json", import.meta.url)));
+
+  const meso = [
+    { name: "Speed — short intervals", startWeek: 1, endWeek: 5, order: 1, workouts: [] },
+    { name: "Speed — long intervals", startWeek: 6, endWeek: 9, order: 2, workouts: [] },
+    { name: "Strength (MP intervals)", startWeek: 10, endWeek: 16, order: 3, workouts: [] },
+    { name: "Race week", startWeek: 17, endWeek: 17, order: 4, workouts: [] },
+  ];
+  const mesoFor = (w) => meso.find((m) => w >= m.startWeek && w <= m.endWeek);
+
+  for (const d of days) {
+    const segments = typeof d.mi === "number" ? [{ value: d.mi, unit: "mi" }] : [];
+    mesoFor(d.w).workouts.push({ weekIndex: d.w, dayOfWeek: d.d, type: d.type, label: d.label, segments });
+  }
+
+  return {
+    key: "hansons-indy",
+    name: "Hansons (Indy Monumental)",
+    author: "Luke Humphrey / Hansons",
+    weeks: 17,
+    daysPerWeek: 6,
+    peakMileage: 58,
+    longRunCap: 16,
+    description: "Hansons Marathon Method built for Indy Monumental — faithful transcription of the spreadsheet (16-mile long-run cap, SOS speed→strength progression).",
+    mesocycles: meso,
+  };
+}
+
 // ---- Hansons (Beginner & Advanced) ----
 function hansons(variant) {
   const adv = variant === "advanced";
@@ -245,7 +281,7 @@ async function seedStrength() {
 
 async function main() {
   console.log("Seeding training plans...");
-  for (const plan of [pfitz(), hansons("beginner"), hansons("advanced")]) {
+  for (const plan of [pfitz(), hansonsIndy(), hansons("beginner"), hansons("advanced")]) {
     await upsertPlan(plan);
   }
   await seedStrength();

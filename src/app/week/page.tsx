@@ -6,6 +6,7 @@ import { getActivePlanInstance } from "@/lib/plan";
 import { weekConstraintWarnings } from "@/lib/schedule";
 import { buildWeekStrength, phaseForMesocycle, type ExerciseInfo, type SessionTemplate } from "@/lib/strength";
 import type { DerivedPaces } from "@/lib/paces";
+import { hansonsPacesFor, HANSONS_HEAT_ADJ } from "@/lib/hansonsPaces";
 import WeekView from "@/components/WeekView";
 import type { DayWorkout } from "@/components/WeekDays";
 
@@ -89,6 +90,12 @@ export default async function WeekPage({
     ]),
   );
 
+  // The Hansons (Indy) plan carries its own spreadsheet pace table instead of
+  // the Riegel-derived paces; resolve it from the instance's goal time. The
+  // per-day/strip pace text is rendered client-side in WeekView so the
+  // heat-adjusted column can be toggled.
+  const hansons = instance.template.key === "hansons-indy" ? hansonsPacesFor(instance.goalTimeSec) : null;
+
   const days: DayWorkout[] = instance.scheduled
     .filter((s) => s.weekIndex === weekIndex)
     .sort((a, b) => a.dayOfWeek - b.dayOfWeek)
@@ -114,6 +121,8 @@ export default async function WeekPage({
         goalLabel={formatGoal(instance.goalTimeSec)}
         daysToRace={daysToRace}
         paces={instance.derivedPaces as unknown as DerivedPaces}
+        hansonsPaces={hansons}
+        hansonsHeatPaces={hansons ? HANSONS_HEAT_ADJ : null}
         days={days}
         warnings={warnings}
       />

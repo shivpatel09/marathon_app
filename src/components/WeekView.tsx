@@ -1,5 +1,9 @@
+"use client";
+
+import { useState } from "react";
 import Link from "next/link";
 import { formatPace, type DerivedPaces } from "@/lib/paces";
+import { hansonsStrip, hansonsPaceForType, type HansonsPaces } from "@/lib/hansonsPaces";
 import WeekDays, { type DayWorkout } from "@/components/WeekDays";
 
 const METERS_PER_MILE = 1609.34;
@@ -21,6 +25,8 @@ interface Props {
   goalLabel: string;
   daysToRace: number;
   paces: DerivedPaces;
+  hansonsPaces?: HansonsPaces | null;
+  hansonsHeatPaces?: HansonsPaces | null;
   days: DayWorkout[];
   warnings: string[];
 }
@@ -43,10 +49,20 @@ function workoutMiles(segs: Segment[]): number {
 }
 
 export default function WeekView(p: Props) {
+  const [heat, setHeat] = useState(false);
   const weekMiles = p.days.reduce((sum, d) => sum + workoutMiles(d.plannedSegments), 0);
   const runDays = p.days.filter((d) => d.type !== "REST").length;
   const prev = p.weekIndex > 1 ? p.weekIndex - 1 : null;
   const next = p.weekIndex < p.totalWeeks ? p.weekIndex + 1 : null;
+
+  // Hansons plan: choose the normal or heat-adjusted pace table, then resolve
+  // the strip and each day's pace text from it.
+  const activePaces: HansonsPaces | null =
+    (heat ? p.hansonsHeatPaces : p.hansonsPaces) ?? null;
+  const strip = activePaces ? hansonsStrip(activePaces) : null;
+  const days: DayWorkout[] = activePaces
+    ? p.days.map((d) => ({ ...d, pace: hansonsPaceForType(d.type, activePaces) }))
+    : p.days;
 
   return (
     <div>
@@ -65,13 +81,37 @@ export default function WeekView(p: Props) {
       </div>
 
       <div className="paces-strip">
-        <span className="muted">your paces /mi —</span>
-        <span>MP {formatPace(p.paces.marathon)}</span>
-        <span>· LT {formatPace(p.paces.lt)}</span>
-        <span>· 5K {formatPace(p.paces.vo2max)}</span>
-        <span>· easy {formatPace(p.paces.easy)}</span>
-        <span>· recovery {formatPace(p.paces.recovery)}</span>
+        {strip ? (
+          <>
+            <span className="muted">
+              your Hansons paces /mi{heat ? " (heat-adj)" : ""} —
+            </span>
+            {strip.map((z, i) => (
+              <span key={z.label}>
+                {i > 0 ? "· " : ""}
+                {z.label} {z.value}
+              </span>
+            ))}
+          </>
+        ) : (
+          <>
+            <span className="muted">your paces /mi —</span>
+            <span>MP {formatPace(p.paces.marathon)}</span>
+            <span>· LT {formatPace(p.paces.lt)}</span>
+            <span>· 5K {formatPace(p.paces.vo2max)}</span>
+            <span>· easy {formatPace(p.paces.easy)}</span>
+            <span>· recovery {formatPace(p.paces.recovery)}</span>
+          </>
+        )}
       </div>
+
+      {p.hansonsPaces && (
+        <label className="heat-toggle">
+          <input type="checkbox" checked={heat} onChange={(e) => setHeat(e.target.checked)} />
+          <span>☀︎ Heat-adjusted paces</span>
+          <span className="muted">— for hot / humid days (≈75°F, 90% humidity)</span>
+        </label>
+      )}
 
       <div className="cards">
         <div className="stat"><div className="label">planned</div><div className="value">{weekMiles.toFixed(1)} mi</div></div>
@@ -94,7 +134,7 @@ export default function WeekView(p: Props) {
         </div>
       )}
 
-      <WeekDays days={p.days} />
+      <WeekDays days={days} />
     </div>
   );
 }
