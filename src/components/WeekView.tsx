@@ -106,10 +106,15 @@ export default function WeekView(p: Props) {
       </div>
 
       {p.hansonsPaces && (
-        <label className="heat-toggle">
+        <label className={`heat-toggle${heat ? " on" : ""}`}>
           <input type="checkbox" checked={heat} onChange={(e) => setHeat(e.target.checked)} />
-          <span>☀︎ Heat-adjusted paces</span>
-          <span className="muted">— for hot / humid days (≈75°F, 90% humidity)</span>
+          <span className="switch" aria-hidden="true">
+            <span className="knob" />
+          </span>
+          <span className="heat-label">
+            ☀︎ Heat-adjusted paces
+            <span className="muted"> — hot / humid days (≈75°F, 90%)</span>
+          </span>
         </label>
       )}
 

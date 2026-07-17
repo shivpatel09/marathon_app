@@ -397,19 +397,66 @@ th.num {
 }
 
 .heat-toggle {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 7px;
-  font-size: 0.8rem;
-  margin: 0 0 4px;
+  gap: 10px;
+  font-size: 0.82rem;
+  margin: 2px 0 10px;
   cursor: pointer;
-  flex-wrap: wrap;
+  user-select: none;
 }
 
+/* keep the checkbox for accessibility, but hide it behind the switch */
 .heat-toggle input {
-  width: auto;
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
   margin: 0;
-  cursor: pointer;
+}
+
+.heat-toggle .switch {
+  position: relative;
+  flex: none;
+  width: 40px;
+  height: 23px;
+  border-radius: 999px;
+  background: var(--border);
+  transition: background 0.2s ease;
+}
+
+.heat-toggle .knob {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 19px;
+  height: 19px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  transition: transform 0.2s ease;
+}
+
+.heat-toggle input:checked + .switch {
+  background: var(--accent);
+}
+
+.heat-toggle input:checked + .switch .knob {
+  transform: translateX(17px);
+}
+
+.heat-toggle input:focus-visible + .switch {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.heat-toggle .heat-label {
+  transition: color 0.2s ease;
+}
+
+.heat-toggle.on .heat-label {
+  color: var(--accent);
+  font-weight: 500;
 }
 
 .week-days {
