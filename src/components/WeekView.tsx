@@ -80,7 +80,7 @@ export default function WeekView(p: Props) {
       </div>
 
       <p className="muted" style={{ fontSize: 12.5, margin: "0 0 10px" }}>
-        Drag a workout onto another day to reschedule — they swap.
+        Tap the ⠿ handle on a workout, then tap another day to swap them (or drag on desktop).
       </p>
 
       {p.warnings.length > 0 && (

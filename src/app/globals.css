@@ -411,8 +411,70 @@ th.num {
   padding: 12px 14px;
 }
 
+.day-body {
+  flex: 1;
+  min-width: 0;
+}
+
 .day-when {
-  min-width: 64px;
+  min-width: 56px;
+  flex: none;
+}
+
+.day-grip {
+  flex: none;
+  border: none;
+  background: none;
+  color: var(--muted);
+  font-size: 17px;
+  line-height: 1;
+  padding: 6px 4px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.day-selected {
+  background: var(--surface);
+}
+
+.day-target {
+  cursor: pointer;
+}
+
+.day-target:hover {
+  background: var(--surface);
+}
+
+.day-miles {
+  flex: none;
+  margin-left: 8px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.day-miles span {
+  font-size: 0.75rem;
+  font-weight: 400;
+  color: var(--muted);
+}
+
+.move-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  background: var(--surface);
+  border: 1px solid var(--accent);
+  border-radius: 10px;
+  padding: 10px 14px;
+  margin-bottom: 12px;
+  font-size: 0.85rem;
+}
+
+.move-banner button {
+  flex: none;
 }
 
 .day-name {
