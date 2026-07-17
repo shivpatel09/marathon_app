@@ -31,7 +31,15 @@ export async function getValidAccessToken(userId: string): Promise<string> {
     }),
   });
   if (!res.ok) {
-    throw new Error(`Strava token refresh failed: ${res.status} ${await res.text()}`);
+    const detail = await res.text();
+    // A revoked authorization (user hit "Revoke Access" on Strava) invalidates
+    // the refresh token too — the only fix is to reconnect from scratch.
+    if (res.status === 400 || res.status === 401) {
+      throw new Error(
+        "Your Strava connection was revoked. Sign out and click Connect Strava to reconnect (keep every permission box checked).",
+      );
+    }
+    throw new Error(`Strava token refresh failed: ${res.status} ${detail}`);
   }
   const data = (await res.json()) as {
     access_token: string;
@@ -86,6 +94,13 @@ export async function fetchActivitiesSince(
     const url = `${STRAVA_API}/athlete/activities?after=${afterEpoch}&per_page=${perPage}&page=${page}`;
     const res = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
     if (!res.ok) {
+      // A 401 here almost always means the token lacks the activity read scope
+      // (the user unchecked "View data about your activities" when connecting).
+      if (res.status === 401) {
+        throw new Error(
+          "Your Strava connection needs to be renewed. Sign out, click Connect Strava, and on Strava's screen keep every box checked — especially \"View data about your activities.\" (Don't use Strava's Revoke Access button.)",
+        );
+      }
       throw new Error(`Strava activities fetch failed: ${res.status} ${await res.text()}`);
     }
     const batch = (await res.json()) as StravaActivity[];
