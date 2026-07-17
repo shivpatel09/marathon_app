@@ -5,6 +5,8 @@
   --border: #e6e6e6;
   --surface: #f7f7f5;
   --accent: #d85a30;
+  --done: #1d9e75;
+  --done-bg: #e1f5ee;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -15,6 +17,8 @@
     --border: #34342f;
     --surface: #242420;
     --accent: #f0997b;
+    --done: #3ecb9b;
+    --done-bg: #10362b;
   }
 }
 
@@ -515,12 +519,35 @@ th.num {
   font-weight: 600;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
+  text-align: right;
 }
 
 .day-miles span {
   font-size: 0.75rem;
   font-weight: 400;
   color: var(--muted);
+}
+
+/* completed runs (matched to a Strava activity) */
+.day-row.day-done {
+  box-shadow: inset 3px 0 0 var(--done);
+}
+
+.done-pill {
+  background: var(--done-bg);
+  color: var(--done);
+  font-weight: 600;
+}
+
+.day-miles.done {
+  color: var(--done);
+}
+
+.day-planned {
+  font-size: 0.68rem;
+  font-weight: 400;
+  color: var(--muted);
+  margin-top: 1px;
 }
 
 .move-banner {

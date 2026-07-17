@@ -99,18 +99,38 @@ export default async function WeekPage({
   // Sunday-start plans display Sunday first; day labels still use Monday=0.
   const sundayStart = startsSunday(instance.template.key);
 
+  // Match synced Strava runs to planned days by calendar date to mark them
+  // completed (same date-keying the weekly review uses). Activities are already
+  // runs-only at sync time; sum any runs that fall on the same day.
+  const METERS_PER_MILE = 1609.34;
+  const dateKey = (d: Date) => d.toISOString().slice(0, 10);
+  const activities = await prisma.activity.findMany({
+    where: { userId: session.user.id },
+    select: { startDate: true, distanceM: true },
+  });
+  const milesByDate = new Map<string, number>();
+  for (const a of activities) {
+    const k = dateKey(a.startDate);
+    milesByDate.set(k, (milesByDate.get(k) ?? 0) + a.distanceM / METERS_PER_MILE);
+  }
+
   const days: DayWorkout[] = instance.scheduled
     .filter((s) => s.weekIndex === weekIndex)
     .sort((a, b) => weekPosition(a.dayOfWeek, sundayStart) - weekPosition(b.dayOfWeek, sundayStart))
-    .map((s) => ({
-      id: s.id,
-      dayOfWeek: s.dayOfWeek,
-      date: s.date.toISOString(),
-      type: s.type,
-      label: s.label,
-      plannedSegments: (s.plannedSegments as DayWorkout["plannedSegments"]) ?? [],
-      strength: strengthByDay.get(s.dayOfWeek),
-    }));
+    .map((s) => {
+      const actualMiles = s.type !== "REST" ? milesByDate.get(dateKey(s.date)) ?? null : null;
+      return {
+        id: s.id,
+        dayOfWeek: s.dayOfWeek,
+        date: s.date.toISOString(),
+        type: s.type,
+        label: s.label,
+        completed: actualMiles != null,
+        actualMiles,
+        plannedSegments: (s.plannedSegments as DayWorkout["plannedSegments"]) ?? [],
+        strength: strengthByDay.get(s.dayOfWeek),
+      };
+    });
 
   const warnings = weekConstraintWarnings(days.map((d) => ({ dayOfWeek: d.dayOfWeek, type: d.type })));
 

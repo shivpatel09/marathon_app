@@ -32,6 +32,8 @@ export interface DayWorkout {
   type: string;
   label?: string | null;
   pace?: string | null;
+  completed?: boolean;
+  actualMiles?: number | null;
   plannedSegments: Segment[];
   strength?: { name: string; items: StrengthItem[] };
 }
@@ -162,7 +164,7 @@ export default function WeekDays({ days }: { days: DayWorkout[] }) {
           const isOver = overId === d.id && dragId !== d.id;
           return (
             <div
-              className={`day-row${isSelected ? " day-selected" : ""}${isTarget ? " day-target" : ""}`}
+              className={`day-row${isSelected ? " day-selected" : ""}${isTarget ? " day-target" : ""}${d.completed ? " day-done" : ""}`}
               key={d.id}
               draggable
               onClick={() => {
@@ -211,6 +213,7 @@ export default function WeekDays({ days }: { days: DayWorkout[] }) {
                   <span className="type-pill" style={{ background: c.bg, color: c.fg }}>
                     {TYPE_LABEL[d.type] ?? d.type.toLowerCase()}
                   </span>
+                  {d.completed && <span className="type-pill done-pill">✓ done</span>}
                   {d.strength && (
                     <button
                       type="button"
@@ -245,11 +248,19 @@ export default function WeekDays({ days }: { days: DayWorkout[] }) {
                 )}
               </div>
 
-              {miles > 0 && (
-                <div className="day-miles">
-                  {fmtMiles(miles)}
+              {d.completed && d.actualMiles != null ? (
+                <div className="day-miles done">
+                  {fmtMiles(Math.round(d.actualMiles * 10) / 10)}
                   <span> mi</span>
+                  {miles > 0 && <div className="day-planned">of {fmtMiles(miles)} planned</div>}
                 </div>
+              ) : (
+                miles > 0 && (
+                  <div className="day-miles">
+                    {fmtMiles(miles)}
+                    <span> mi</span>
+                  </div>
+                )
               )}
             </div>
           );
