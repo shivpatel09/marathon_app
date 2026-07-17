@@ -97,6 +97,7 @@ export default async function WeekPage({
       dayOfWeek: s.dayOfWeek,
       date: s.date.toISOString(),
       type: s.type,
+      label: s.label,
       plannedSegments: (s.plannedSegments as DayWorkout["plannedSegments"]) ?? [],
       strength: strengthByDay.get(s.dayOfWeek),
     }));

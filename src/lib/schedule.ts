@@ -30,6 +30,7 @@ export interface TemplateWorkout {
   dayOfWeek: number;
   type: string;
   segments: Segment[];
+  label?: string | null;
 }
 
 export interface ScheduledInput {
@@ -38,6 +39,7 @@ export interface ScheduledInput {
   date: Date;
   originalDate: Date;
   type: string;
+  label?: string | null;
   plannedSegments: ResolvedSegment[];
   targetRacePace?: number;
   raceDistanceM?: number;
@@ -88,8 +90,14 @@ export function generateSchedule(
   paces: DerivedPaces,
   raceDate: Date,
 ): ScheduledInput[] {
+  // Anchor the plan so the goal-race workout lands exactly on raceDate — this
+  // handles plans whose race isn't on the final Sunday (e.g. a Saturday race).
+  const raceWorkout = workouts.find((w) => w.type === "RACE");
+  const anchorWeek = raceWorkout ? raceWorkout.weekIndex : weeks;
+  const anchorDay = raceWorkout ? raceWorkout.dayOfWeek : 6;
+
   return workouts.map((w) => {
-    const offset = daysBeforeRace(weeks, w.weekIndex, w.dayOfWeek);
+    const offset = (anchorWeek - w.weekIndex) * 7 + (anchorDay - w.dayOfWeek);
     const date = new Date(raceDate.getTime() - offset * DAY_MS);
 
     let targetRacePace: number | undefined;
@@ -113,6 +121,7 @@ export function generateSchedule(
       date,
       originalDate: date,
       type: w.type,
+      label: w.label ?? null,
       plannedSegments,
       targetRacePace,
       raceDistanceM,

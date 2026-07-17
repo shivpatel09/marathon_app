@@ -129,6 +129,7 @@ model WorkoutTemplate {
   dayOfWeek   Int // 0 = Monday .. 6 = Sunday
   type        WorkoutType
   isDouble    Boolean     @default(false)
+  label       String? // human-readable book prescription, e.g. "LT 9 mi w/ 20-25 min @ LT"
   segments    Json // [{ paceRef, value, unit, reps?, ... }]
 
   @@unique([mesocycleId, weekIndex, dayOfWeek])
@@ -181,6 +182,7 @@ model ScheduledWorkout {
   originalDate      DateTime // as first generated; for audit / constraint checks
   movedByUser       Boolean          @default(false)
   type              WorkoutType
+  label             String? // human-readable book prescription
   plannedSegments   Json // segments with resolved pace (secPerMile) baked in
   targetRacePace    Float? // sec/mi, for TUNE_UP_RACE
   raceDistanceM     Float?

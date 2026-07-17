@@ -29,6 +29,7 @@ export interface DayWorkout {
   dayOfWeek: number;
   date: string; // ISO
   type: string;
+  label?: string | null; // exact book prescription, if the plan provides one
   plannedSegments: Segment[];
   strength?: { name: string; items: StrengthItem[] }; // recommended session, if any
 }
@@ -115,7 +116,7 @@ export default function WeekDays({ days }: { days: DayWorkout[] }) {
     <div className="week-days" style={{ opacity: pending ? 0.55 : 1, pointerEvents: pending ? "none" : "auto" }}>
       {days.map((d) => {
         const c = pillColors(d.type);
-        const detail = d.plannedSegments.map(segText).filter(Boolean).join(" · ");
+        const detail = d.label ?? d.plannedSegments.map(segText).filter(Boolean).join(" · ");
         const date = new Date(d.date).toLocaleDateString("en-US", { month: "short", day: "numeric" });
         const isOver = overId === d.id && dragId !== d.id;
         const isDragging = dragId === d.id;

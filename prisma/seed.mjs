@@ -12,6 +12,7 @@
 // time at plan-instance time (see src/lib/paces.ts).
 
 import { PrismaClient } from "@prisma/client";
+import { readFileSync } from "fs";
 
 const prisma = new PrismaClient();
 
@@ -28,48 +29,26 @@ const intervals = (paceRef, reps, repValue, repUnit, recovery) => ({
 });
 
 // ---- Pfitzinger 18/55 ----
+// Pfitzinger 18/55 — faithful transcription of the book schedule
+// (prisma/pfitz-plan.json). Each day carries the exact workout `label`;
+// segments hold the planned mileage so weekly/plan totals still compute.
+// The workout `type` drives pill colour + strength placement; personalized
+// paces come from the runner's goal at plan-instance time.
 function pfitz() {
-  const longRun = [11, 12, 13, 14, 15, 12, 16, 17, 18, 15, 20, 20, 16, 22, 18, 14, 12, 8];
-  const medium = [7, 8, 8, 9, 10, 8, 9, 10, 11, 9, 11, 11, 9, 11, 10, 8, 7, 5];
-  const satGA = [5, 6, 6, 6, 7, 5, 6, 7, 7, 6, 7, 7, 6, 7, 6, 5, 5, 4];
-  const thuRec = [4, 5, 5, 5, 5, 4, 5, 5, 6, 5, 6, 5, 5, 6, 5, 4, 4, 3];
-  const friGA = [0, 4, 4, 5, 5, 0, 5, 5, 6, 0, 6, 6, 0, 6, 5, 0, 0, 0];
-  const ltMiles = { 7: 4, 8: 5, 9: 6, 10: 4, 11: 7 };
+  const days = JSON.parse(readFileSync(new URL("./pfitz-plan.json", import.meta.url)));
 
   const meso = [
     { name: "Endurance", startWeek: 1, endWeek: 6, order: 1, workouts: [] },
     { name: "Lactate threshold + endurance", startWeek: 7, endWeek: 11, order: 2, workouts: [] },
     { name: "Race preparation", startWeek: 12, endWeek: 15, order: 3, workouts: [] },
-    { name: "Taper and race", startWeek: 16, endWeek: 18, order: 4, workouts: [] },
+    { name: "Taper", startWeek: 16, endWeek: 17, order: 4, workouts: [] },
+    { name: "Race week", startWeek: 18, endWeek: 18, order: 5, workouts: [] },
   ];
   const mesoFor = (w) => meso.find((m) => w >= m.startWeek && w <= m.endWeek);
 
-  for (let w = 1; w <= 18; w++) {
-    const i = w - 1;
-    const m = mesoFor(w);
-    const add = (dayOfWeek, type, segments) => m.workouts.push({ weekIndex: w, dayOfWeek, type, segments });
-
-    add(0, "REST", []);
-
-    // Tue — quality, by phase
-    if (w <= 6) add(1, "GENERAL_AEROBIC", [run("GENERAL_AEROBIC", 7), strides(8)]);
-    else if (w <= 11) add(1, "TEMPO_LT", [run("EASY", 2), run("LT", ltMiles[w]), run("EASY", 2)]);
-    else if (w <= 15) add(1, "VO2MAX", [run("EASY", 2), intervals("VO2MAX", 6, 1000, "m", "jog 2-3 min"), run("EASY", 2)]);
-    else add(1, "GENERAL_AEROBIC", [run("GENERAL_AEROBIC", 6), strides(6)]);
-
-    add(2, "MEDIUM_LONG", [run("GENERAL_AEROBIC", medium[i])]);
-    add(3, "RECOVERY", [run("RECOVERY", thuRec[i]), strides(6)]);
-    add(4, friGA[i] > 0 ? "GENERAL_AEROBIC" : "REST", friGA[i] > 0 ? [run("GENERAL_AEROBIC", friGA[i])] : []);
-    add(5, "GENERAL_AEROBIC", [run("GENERAL_AEROBIC", satGA[i]), strides(6)]);
-
-    // Sun — race day (week 18), a tune-up race (week 14), else the long run
-    if (w === 18) {
-      add(6, "RACE", [{ kind: "race", paceRef: "MARATHON", value: 26.2, unit: "mi" }]);
-    } else if (w === 14) {
-      add(6, "TUNE_UP_RACE", [run("EASY", 3), { kind: "race", paceRef: "LT", value: 10, unit: "K" }, run("EASY", 2)]);
-    } else {
-      add(6, "LONG", [run("LONG", longRun[i])]);
-    }
+  for (const d of days) {
+    const segments = typeof d.mi === "number" ? [{ value: d.mi, unit: "mi" }] : [];
+    mesoFor(d.w).workouts.push({ weekIndex: d.w, dayOfWeek: d.d, type: d.type, label: d.label, segments });
   }
 
   return {
@@ -78,9 +57,9 @@ function pfitz() {
     author: "Pete Pfitzinger",
     weeks: 18,
     daysPerWeek: 6,
-    peakMileage: 55,
+    peakMileage: 56,
     longRunCap: null,
-    description: "Mesocycle structure with a lactate-threshold focus; peaks at 55 mpw.",
+    description: "Advanced Marathoning 18-week / 55-mile plan — faithful book schedule.",
     mesocycles: meso,
   };
 }
@@ -188,6 +167,7 @@ async function upsertPlan(plan) {
             weekIndex: w.weekIndex,
             dayOfWeek: w.dayOfWeek,
             type: w.type,
+            label: w.label ?? null,
             segments: w.segments,
           })),
         },

@@ -25,6 +25,7 @@ export async function createPlanInstance(opts: {
       weekIndex: w.weekIndex,
       dayOfWeek: w.dayOfWeek,
       type: w.type,
+      label: w.label,
       segments: (w.segments as unknown as TemplateWorkout["segments"]) ?? [],
     })),
   );
@@ -50,6 +51,7 @@ export async function createPlanInstance(opts: {
           date: s.date,
           originalDate: s.originalDate,
           type: s.type as WorkoutType,
+          label: s.label ?? null,
           plannedSegments: s.plannedSegments as unknown as Prisma.InputJsonValue,
           targetRacePace: s.targetRacePace ?? null,
           raceDistanceM: s.raceDistanceM ?? null,

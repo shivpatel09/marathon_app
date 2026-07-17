@@ -9,3 +9,6 @@ build
 .vercel
 next-env.d.ts
 *.tsbuildinfo
+
+# Apple Numbers source files (personal)
+*.numbers
