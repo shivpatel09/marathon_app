@@ -3,7 +3,7 @@
 import { Prisma, WorkoutType } from "@prisma/client";
 import { prisma } from "./prisma";
 import { derivePaces } from "./paces";
-import { generateSchedule, TemplateWorkout } from "./schedule";
+import { generateSchedule, startsSunday, TemplateWorkout } from "./schedule";
 
 export async function createPlanInstance(opts: {
   userId: string;
@@ -29,7 +29,7 @@ export async function createPlanInstance(opts: {
       segments: (w.segments as unknown as TemplateWorkout["segments"]) ?? [],
     })),
   );
-  const scheduled = generateSchedule(workouts, template.weeks, paces, raceDate);
+  const scheduled = generateSchedule(workouts, template.weeks, paces, raceDate, startsSunday(templateKey));
 
   // one active plan at a time
   await prisma.userPlanInstance.updateMany({

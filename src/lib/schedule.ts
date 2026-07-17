@@ -10,6 +10,21 @@ import { DerivedPaces, PaceRef, resolvePace } from "./paces";
 const DAY_MS = 24 * 3600 * 1000;
 const METERS_PER_MILE = 1609.34;
 
+// Plans whose training week runs Sunday→Saturday rather than the app's default
+// Monday→Sunday. dayOfWeek is still stored Monday=0..Sunday=6 (so day labels and
+// strength placement are unchanged); only the intra-week position used for date
+// math and display order shifts so Sunday leads the week.
+const SUNDAY_START_PLANS = new Set(["hansons-indy"]);
+
+export function startsSunday(templateKey: string): boolean {
+  return SUNDAY_START_PLANS.has(templateKey);
+}
+
+/** Position of a day within its week (0-based), honoring the week's start day. */
+export function weekPosition(dayOfWeek: number, sundayStart: boolean): number {
+  return sundayStart ? (dayOfWeek + 1) % 7 : dayOfWeek;
+}
+
 export interface Segment {
   paceRef?: PaceRef;
   value?: number;
@@ -89,15 +104,17 @@ export function generateSchedule(
   weeks: number,
   paces: DerivedPaces,
   raceDate: Date,
+  sundayStart = false,
 ): ScheduledInput[] {
   // Anchor the plan so the goal-race workout lands exactly on raceDate — this
   // handles plans whose race isn't on the final Sunday (e.g. a Saturday race).
   const raceWorkout = workouts.find((w) => w.type === "RACE");
   const anchorWeek = raceWorkout ? raceWorkout.weekIndex : weeks;
   const anchorDay = raceWorkout ? raceWorkout.dayOfWeek : 6;
+  const anchorPos = weekPosition(anchorDay, sundayStart);
 
   return workouts.map((w) => {
-    const offset = (anchorWeek - w.weekIndex) * 7 + (anchorDay - w.dayOfWeek);
+    const offset = (anchorWeek - w.weekIndex) * 7 + (anchorPos - weekPosition(w.dayOfWeek, sundayStart));
     const date = new Date(raceDate.getTime() - offset * DAY_MS);
 
     let targetRacePace: number | undefined;

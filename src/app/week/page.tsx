@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { getActivePlanInstance } from "@/lib/plan";
-import { weekConstraintWarnings } from "@/lib/schedule";
+import { weekConstraintWarnings, startsSunday, weekPosition } from "@/lib/schedule";
 import { buildWeekStrength, phaseForMesocycle, type ExerciseInfo, type SessionTemplate } from "@/lib/strength";
 import type { DerivedPaces } from "@/lib/paces";
 import { hansonsPacesFor, HANSONS_HEAT_ADJ } from "@/lib/hansonsPaces";
@@ -96,9 +96,12 @@ export default async function WeekPage({
   // heat-adjusted column can be toggled.
   const hansons = instance.template.key === "hansons-indy" ? hansonsPacesFor(instance.goalTimeSec) : null;
 
+  // Sunday-start plans display Sunday first; day labels still use Monday=0.
+  const sundayStart = startsSunday(instance.template.key);
+
   const days: DayWorkout[] = instance.scheduled
     .filter((s) => s.weekIndex === weekIndex)
-    .sort((a, b) => a.dayOfWeek - b.dayOfWeek)
+    .sort((a, b) => weekPosition(a.dayOfWeek, sundayStart) - weekPosition(b.dayOfWeek, sundayStart))
     .map((s) => ({
       id: s.id,
       dayOfWeek: s.dayOfWeek,
