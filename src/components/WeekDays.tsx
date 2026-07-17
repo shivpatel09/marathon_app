@@ -154,7 +154,9 @@ export default function WeekDays({ days }: { days: DayWorkout[] }) {
           const c = pillColors(d.type);
           const detail = d.label ?? d.plannedSegments.map(segText).filter(Boolean).join(" · ");
           const miles = workoutMiles(d.plannedSegments);
-          const date = new Date(d.date).toLocaleDateString("en-US", { month: "short", day: "numeric" });
+          // Planned dates are date-only, stored at midnight UTC — render in UTC
+          // so the calendar day doesn't shift for viewers behind/ahead of UTC.
+          const date = new Date(d.date).toLocaleDateString("en-US", { month: "short", day: "numeric", timeZone: "UTC" });
           const isSelected = selectedId === d.id;
           const isTarget = selectedId != null && selectedId !== d.id;
           const isOver = overId === d.id && dragId !== d.id;

@@ -142,7 +142,9 @@ export function buildPlanOverview(input: OverviewInput, now: Date): PlanOverview
   return {
     planName: input.planName,
     goalLabel: fmtGoal(input.goalTimeSec),
-    raceDateLabel: input.raceDate.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" }),
+    // raceDate is a date-only value stored at midnight UTC — format in UTC so
+    // the calendar day doesn't shift for viewers behind/ahead of UTC.
+    raceDateLabel: input.raceDate.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric", timeZone: "UTC" }),
     daysToRace,
     started,
     daysToStart,
