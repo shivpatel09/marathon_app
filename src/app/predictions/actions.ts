@@ -16,8 +16,8 @@ export async function saveRunalyzeToken(formData: FormData): Promise<void> {
   if (!check.ok) {
     throw new Error(
       check.status === 401 || check.status === 403
-        ? "Runalyze rejected that token — check it was copied fully and hasn't expired."
-        : "Couldn't reach Runalyze to validate the token. Try again.",
+        ? `Runalyze rejected the token (HTTP ${check.status}). Note: Runalyze only gives Personal-API read access to Supporter/Premium accounts — on a free account the API is upload-only, so predictions can't be read out. Also check the token was copied fully and hasn't expired.`
+        : `Couldn't reach Runalyze to validate the token (status ${check.status || "network error"}). Try again.`,
     );
   }
 
