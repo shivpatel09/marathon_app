@@ -28,6 +28,9 @@ model User {
   weeklyWeightChangeKg Float? // target rate, e.g. -0.25 (negative = lose)
   baselineActivity     ActivityLevel?
   dietaryPrefs         String[]
+  // Runalyze Personal API token (runalyze.com/settings/personal-api) —
+  // used server-side only to pull race predictions for the Predictions tab
+  runalyzeToken        String?
   accounts      Account[]
   sessions      Session[]
   activities    Activity[]

@@ -38,6 +38,12 @@ const ICON = {
       <path d="M3 12h4l2-6 4 12 2-6h6" />
     </svg>
   ),
+  predictions: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="9" />
+      <path d="M12 7v5l3 3" />
+    </svg>
+  ),
 };
 
 const TABS = [
@@ -46,6 +52,7 @@ const TABS = [
   { href: "/strength", label: "Strength", icon: ICON.strength },
   { href: "/nutrition", label: "Nutrition", icon: ICON.nutrition },
   { href: "/review", label: "Review", icon: ICON.review },
+  { href: "/predictions", label: "Predict", icon: ICON.predictions },
   { href: "/runs", label: "Runs", icon: ICON.runs },
 ];
 
