@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { ActivityLevel, BodyCompGoal, IntakeSignal, Sex } from "@prisma/client";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { todayKey } from "@/lib/time";
 import { feetInchesToCm, lbToKg } from "@/lib/nutrition";
 
 function num(v: FormDataEntryValue | null): number | null {
@@ -52,8 +53,10 @@ export async function saveCheckIn(formData: FormData) {
   const session = await auth();
   if (!session?.user?.id) throw new Error("unauthorized");
 
-  const raw = String(formData.get("date") ?? "");
-  const date = new Date(`${raw || new Date().toISOString().slice(0, 10)}T00:00:00`);
+  // The form supplies today's Eastern calendar date (yyyy-mm-dd); store it at
+  // midnight UTC so it keys the same way as planned workout dates.
+  const raw = String(formData.get("date") ?? "") || todayKey();
+  const date = new Date(`${raw}T00:00:00.000Z`);
   const signal = String(formData.get("intakeSignal") ?? "");
 
   const data = {

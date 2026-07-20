@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { formatEastern } from "@/lib/time";
 
 export interface ActivityRow {
   id: string;
@@ -29,10 +30,7 @@ function paceFromSpeed(speed: number | null): string {
 }
 
 function fmtDate(iso: string): string {
-  return new Date(iso).toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-  });
+  return formatEastern(new Date(iso), { month: "short", day: "numeric" });
 }
 
 export default function ActivityList({ activities }: { activities: ActivityRow[] }) {

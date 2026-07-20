@@ -4,6 +4,7 @@
 
 import { prisma } from "./prisma";
 import { formatPace, type DerivedPaces } from "./paces";
+import { startOfToday, easternDateKey, plannedDateKey } from "./time";
 
 const METERS_PER_MILE = 1609.34;
 const DAY_MS = 86400000;
@@ -69,10 +70,6 @@ function targetPace(segs: Segment[]): number | null {
 
 const EASY_TYPES = new Set(["RECOVERY", "EASY", "GENERAL_AEROBIC", "LONG", "MEDIUM_LONG"]);
 
-function dateKey(d: Date): string {
-  return d.toISOString().slice(0, 10);
-}
-
 export async function assembleWeeklyReview(
   userId: string,
   requestedWeek?: number,
@@ -87,8 +84,7 @@ export async function assembleWeeklyReview(
   if (!instance) return null;
 
   const total = instance.template.weeks;
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
+  const today = startOfToday();
 
   // current week = first week whose last workout is today or later
   const weekMax = (w: number) =>
@@ -114,7 +110,7 @@ export async function assembleWeeklyReview(
     orderBy: { startDate: "asc" },
   });
   const actByDate = new Map<string, (typeof activities)[number]>();
-  for (const a of activities) actByDate.set(dateKey(a.startDate), a);
+  for (const a of activities) actByDate.set(easternDateKey(a.startDate), a);
 
   // planned vs actual mileage for the week
   const planned = weekWorkouts.reduce(
@@ -132,7 +128,7 @@ export async function assembleWeeklyReview(
   const runDays = weekWorkouts.filter((w) => w.type !== "REST");
   const graded: GradedWorkout[] = [];
   for (const w of runDays) {
-    const act = actByDate.get(dateKey(w.date));
+    const act = actByDate.get(plannedDateKey(w.date));
     const segs = (w.plannedSegments as Segment[]) ?? [];
     if (!act) {
       if (+w.date < +today) graded.push({ day: DAYS[w.dayOfWeek], type: w.type, verdict: "missed", onTarget: false });

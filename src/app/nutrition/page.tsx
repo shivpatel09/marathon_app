@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { startOfToday, todayKey as todayKeyFn, plannedDateKey } from "@/lib/time";
 import {
   analyzeWeightTrend,
   computeDailyTargets,
@@ -51,9 +52,8 @@ export default async function NutritionPage() {
   const user = await prisma.user.findUnique({ where: { id: session.user.id } });
   if (!user) redirect("/");
 
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const todayKey = today.toISOString().slice(0, 10);
+  const today = startOfToday();
+  const todayKey = todayKeyFn();
 
   if (!profileComplete(user)) {
     return (
@@ -85,7 +85,7 @@ export default async function NutritionPage() {
   });
   let trainingMiles = 0;
   let todayLabel = "rest day";
-  const todaySW = instance?.scheduled.find((s) => s.date.toISOString().slice(0, 10) === todayKey);
+  const todaySW = instance?.scheduled.find((s) => plannedDateKey(s.date) === todayKey);
   if (todaySW) {
     trainingMiles = segmentMiles((todaySW.plannedSegments as Segment[]) ?? []);
     todayLabel =
@@ -127,7 +127,7 @@ export default async function NutritionPage() {
       energyLevel: c.energyLevel,
       proteinHit: c.proteinHit,
     }));
-  const loggedToday = checkIns.some((c) => c.date.toISOString().slice(0, 10) === todayKey);
+  const loggedToday = checkIns.some((c) => plannedDateKey(c.date) === todayKey);
 
   return (
     <main className="container">

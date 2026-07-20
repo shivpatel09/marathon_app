@@ -1,6 +1,8 @@
 // Plan overview for the dashboard: countdown, mileage progress, and a simple
 // readiness read on whether training is tracking toward the goal. Pure function.
 
+import { startOfToday, formatPlannedDate } from "./time";
+
 const METERS_PER_MILE = 1609.34;
 const DAY_MS = 86400000;
 
@@ -67,8 +69,7 @@ function fmtGoal(sec: number): string {
 }
 
 export function buildPlanOverview(input: OverviewInput, now: Date): PlanOverview {
-  const today = new Date(now);
-  today.setHours(0, 0, 0, 0);
+  const today = startOfToday(now);
 
   const dates = input.scheduled.map((s) => +s.date);
   const planStart = new Date(Math.min(...dates));
@@ -142,9 +143,7 @@ export function buildPlanOverview(input: OverviewInput, now: Date): PlanOverview
   return {
     planName: input.planName,
     goalLabel: fmtGoal(input.goalTimeSec),
-    // raceDate is a date-only value stored at midnight UTC — format in UTC so
-    // the calendar day doesn't shift for viewers behind/ahead of UTC.
-    raceDateLabel: input.raceDate.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric", timeZone: "UTC" }),
+    raceDateLabel: formatPlannedDate(input.raceDate, { month: "long", day: "numeric", year: "numeric" }),
     daysToRace,
     started,
     daysToStart,

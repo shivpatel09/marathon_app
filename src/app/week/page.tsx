@@ -4,6 +4,7 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { getActivePlanInstance } from "@/lib/plan";
 import { weekConstraintWarnings, startsSunday, weekPosition } from "@/lib/schedule";
+import { startOfToday, easternDateKey, plannedDateKey } from "@/lib/time";
 import { buildWeekStrength, phaseForMesocycle, type ExerciseInfo, type SessionTemplate } from "@/lib/strength";
 import type { DerivedPaces } from "@/lib/paces";
 import { hansonsPacesFor, HANSONS_HEAT_ADJ } from "@/lib/hansonsPaces";
@@ -43,8 +44,7 @@ export default async function WeekPage({
   const total = instance.template.weeks;
 
   // determine the current week: first week whose last workout is today or later
-  const todayMid = new Date();
-  todayMid.setHours(0, 0, 0, 0);
+  const todayMid = startOfToday();
   const weekMax = (w: number) =>
     Math.max(...instance.scheduled.filter((s) => s.weekIndex === w).map((s) => +s.date));
   let computed = total;
@@ -103,14 +103,13 @@ export default async function WeekPage({
   // completed (same date-keying the weekly review uses). Activities are already
   // runs-only at sync time; sum any runs that fall on the same day.
   const METERS_PER_MILE = 1609.34;
-  const dateKey = (d: Date) => d.toISOString().slice(0, 10);
   const activities = await prisma.activity.findMany({
     where: { userId: session.user.id },
     select: { startDate: true, distanceM: true },
   });
   const milesByDate = new Map<string, number>();
   for (const a of activities) {
-    const k = dateKey(a.startDate);
+    const k = easternDateKey(a.startDate); // real run timestamp -> Eastern day
     milesByDate.set(k, (milesByDate.get(k) ?? 0) + a.distanceM / METERS_PER_MILE);
   }
 
@@ -118,7 +117,7 @@ export default async function WeekPage({
     .filter((s) => s.weekIndex === weekIndex)
     .sort((a, b) => weekPosition(a.dayOfWeek, sundayStart) - weekPosition(b.dayOfWeek, sundayStart))
     .map((s) => {
-      const actualMiles = s.type !== "REST" ? milesByDate.get(dateKey(s.date)) ?? null : null;
+      const actualMiles = s.type !== "REST" ? milesByDate.get(plannedDateKey(s.date)) ?? null : null;
       return {
         id: s.id,
         dayOfWeek: s.dayOfWeek,

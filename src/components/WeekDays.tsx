@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { formatPace } from "@/lib/paces";
+import { formatPlannedDate } from "@/lib/time";
 import { moveWorkout } from "@/app/week/actions";
 
 const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
@@ -156,9 +157,8 @@ export default function WeekDays({ days }: { days: DayWorkout[] }) {
           const c = pillColors(d.type);
           const detail = d.label ?? d.plannedSegments.map(segText).filter(Boolean).join(" · ");
           const miles = workoutMiles(d.plannedSegments);
-          // Planned dates are date-only, stored at midnight UTC — render in UTC
-          // so the calendar day doesn't shift for viewers behind/ahead of UTC.
-          const date = new Date(d.date).toLocaleDateString("en-US", { month: "short", day: "numeric", timeZone: "UTC" });
+          // Planned dates are date-only calendar values (stored midnight UTC).
+          const date = formatPlannedDate(new Date(d.date), { month: "short", day: "numeric" });
           const isSelected = selectedId === d.id;
           const isTarget = selectedId != null && selectedId !== d.id;
           const isOver = overId === d.id && dragId !== d.id;

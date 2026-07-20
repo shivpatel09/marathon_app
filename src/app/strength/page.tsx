@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { getActivePlanInstance } from "@/lib/plan";
+import { startOfToday } from "@/lib/time";
 import {
   buildWeekStrength,
   phaseForMesocycle,
@@ -34,8 +35,7 @@ export default async function StrengthPage({
   }
 
   const total = instance.template.weeks;
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
+  const today = startOfToday();
   const weekMax = (w: number) =>
     Math.max(...instance.scheduled.filter((s) => s.weekIndex === w).map((s) => +s.date));
   let computed = total;

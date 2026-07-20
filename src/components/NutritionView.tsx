@@ -1,4 +1,5 @@
 import { kgToLb, type DailyTargets, type TrendAnalysis } from "@/lib/nutrition";
+import { formatPlannedDate } from "@/lib/time";
 import { deleteCheckIn } from "@/app/nutrition/actions";
 
 const round1 = (n: number) => Math.round(n * 10) / 10;
@@ -113,7 +114,7 @@ export default function NutritionView({
             <tbody>
               {recent.map((c) => (
                 <tr key={c.id}>
-                  <td>{new Date(c.date).toLocaleDateString("en-US", { month: "short", day: "numeric" })}</td>
+                  <td>{formatPlannedDate(new Date(c.date), { month: "short", day: "numeric" })}</td>
                   <td className="num">{c.weightKg != null ? `${round1(kgToLb(c.weightKg))} lb` : "—"}</td>
                   <td>{c.intakeSignal ? c.intakeSignal.toLowerCase().replace("_", " ") : "—"}</td>
                   <td className="num">{c.energyLevel ?? "—"}</td>
