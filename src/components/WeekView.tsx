@@ -51,6 +51,7 @@ function workoutMiles(segs: Segment[]): number {
 export default function WeekView(p: Props) {
   const [heat, setHeat] = useState(false);
   const weekMiles = p.days.reduce((sum, d) => sum + workoutMiles(d.plannedSegments), 0);
+  const completedMiles = p.days.reduce((sum, d) => sum + (d.actualMiles ?? 0), 0);
   const runDays = p.days.filter((d) => d.type !== "REST").length;
   const prev = p.weekIndex > 1 ? p.weekIndex - 1 : null;
   const next = p.weekIndex < p.totalWeeks ? p.weekIndex + 1 : null;
@@ -120,6 +121,17 @@ export default function WeekView(p: Props) {
 
       <div className="cards">
         <div className="stat"><div className="label">planned</div><div className="value">{weekMiles.toFixed(1)} mi</div></div>
+        <div className="stat">
+          <div className="label">completed</div>
+          <div className="value" style={{ color: "var(--done)" }}>
+            {completedMiles.toFixed(1)} mi
+            {weekMiles > 0 && (
+              <span className="muted" style={{ fontSize: "0.8rem", fontWeight: 400, marginLeft: 6 }}>
+                {Math.round((completedMiles / weekMiles) * 100)}%
+              </span>
+            )}
+          </div>
+        </div>
         <div className="stat"><div className="label">run days</div><div className="value">{runDays}</div></div>
         <div className="stat"><div className="label">race day</div><div className="value">{p.daysToRace} d</div></div>
       </div>
