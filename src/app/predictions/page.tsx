@@ -26,7 +26,7 @@ export default async function PredictionsPage() {
   const [user, activities, instance] = await Promise.all([
     prisma.user.findUnique({
       where: { id: session.user.id },
-      select: { runalyzeToken: true, age: true },
+      select: { runalyzeToken: true, age: true, maxHr: true },
     }),
     prisma.activity.findMany({
       where: { userId: session.user.id },
@@ -36,7 +36,7 @@ export default async function PredictionsPage() {
     getActivePlanInstance(session.user.id),
   ]);
 
-  const result = buildPredictions(activities, user?.age ?? null);
+  const result = buildPredictions(activities, user?.age ?? null, user?.maxHr ?? null);
   const marathon = result?.predictions.find((p) => p.key === "marathon");
   const goalSec = instance?.goalTimeSec ?? null;
   const goalDelta = marathon && goalSec ? marathon.seconds - goalSec : null;
@@ -109,9 +109,11 @@ export default async function PredictionsPage() {
           <p className="muted" style={{ fontSize: "0.8rem", marginTop: 10 }}>
             {result.method === "vo2max" ? (
               <>
-                Based on {result.sampleCount} runs with heart-rate data (median effective VO₂max), HRmax
-                estimated at {result.hrMax} bpm{user?.age ? ` from age ${user.age}` : " (add your age in the nutrition profile to refine)"}.
-                Predictions assume race-day effort, flat course, and taper.
+                Based on {result.sampleCount} runs with heart-rate data (median effective VO₂max). Max HR{" "}
+                {user?.maxHr
+                  ? `set to ${result.hrMax} bpm`
+                  : `estimated at ${result.hrMax} bpm${user?.age ? ` from age ${user.age}` : ""} — set your real max HR in the nutrition profile to refine`}
+                . Predictions assume race-day effort, flat course, and taper.
               </>
             ) : (
               <>

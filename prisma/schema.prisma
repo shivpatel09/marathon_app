@@ -23,6 +23,7 @@ model User {
   weightKg             Float?
   heightCm             Float?
   age                  Int?
+  maxHr                Int? // measured max HR; falls back to an age estimate
   sex                  Sex?
   bodyCompGoal         BodyCompGoal?
   weeklyWeightChangeKg Float? // target rate, e.g. -0.25 (negative = lose)

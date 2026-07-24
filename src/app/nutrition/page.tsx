@@ -67,6 +67,7 @@ export default async function NutritionPage() {
             weightKg: user.weightKg,
             heightCm: user.heightCm,
             age: user.age,
+            maxHr: user.maxHr,
             sex: user.sex,
             baselineActivity: user.baselineActivity,
             bodyCompGoal: user.bodyCompGoal,

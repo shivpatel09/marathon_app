@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { formatPace, type DerivedPaces } from "@/lib/paces";
 import { hansonsStrip, hansonsPaceForType, type HansonsPaces } from "@/lib/hansonsPaces";
+import { fmtOnFeet } from "@/lib/weekMetrics";
 import WeekDays, { type DayWorkout } from "@/components/WeekDays";
 
 const METERS_PER_MILE = 1609.34;
@@ -23,10 +24,14 @@ interface Props {
   weekIndex: number;
   mesocycle: string;
   goalLabel: string;
-  daysToRace: number;
   paces: DerivedPaces;
   hansonsPaces?: HansonsPaces | null;
   hansonsHeatPaces?: HansonsPaces | null;
+  summary: {
+    acwr: { value: number; inRange: boolean } | null;
+    intensity: { easyPct: number; hardPct: number } | null;
+    timeOnFeetSec: number;
+  };
   days: DayWorkout[];
   warnings: string[];
 }
@@ -52,7 +57,7 @@ export default function WeekView(p: Props) {
   const [heat, setHeat] = useState(false);
   const weekMiles = p.days.reduce((sum, d) => sum + workoutMiles(d.plannedSegments), 0);
   const completedMiles = p.days.reduce((sum, d) => sum + (d.actualMiles ?? 0), 0);
-  const runDays = p.days.filter((d) => d.type !== "REST").length;
+  const longestRun = p.days.reduce((max, d) => Math.max(max, workoutMiles(d.plannedSegments)), 0);
   const prev = p.weekIndex > 1 ? p.weekIndex - 1 : null;
   const next = p.weekIndex < p.totalWeeks ? p.weekIndex + 1 : null;
 
@@ -132,8 +137,34 @@ export default function WeekView(p: Props) {
             )}
           </div>
         </div>
-        <div className="stat"><div className="label">run days</div><div className="value">{runDays}</div></div>
-        <div className="stat"><div className="label">race day</div><div className="value">{p.daysToRace} d</div></div>
+      </div>
+
+      <div className="week-summary">
+        {p.summary.acwr && (
+          <span>
+            <span className="muted">ACWR</span> {p.summary.acwr.value.toFixed(2)}
+            <span
+              className="acwr-dot"
+              style={{ background: p.summary.acwr.inRange ? "var(--done)" : "var(--warn-fg, #ba7517)" }}
+              title={p.summary.acwr.inRange ? "in the 0.8–1.3 safe range" : "outside the 0.8–1.3 safe range"}
+            />
+          </span>
+        )}
+        {longestRun > 0 && (
+          <span>
+            <span className="muted">long run</span> {longestRun % 1 === 0 ? longestRun : longestRun.toFixed(1)} mi
+          </span>
+        )}
+        {p.summary.timeOnFeetSec > 0 && (
+          <span>
+            <span className="muted">on feet</span> {fmtOnFeet(p.summary.timeOnFeetSec)}
+          </span>
+        )}
+        {p.summary.intensity && (
+          <span>
+            <span className="muted">easy/hard</span> {p.summary.intensity.easyPct}/{p.summary.intensity.hardPct}
+          </span>
+        )}
       </div>
 
       <p className="muted" style={{ fontSize: 12.5, margin: "0 0 10px" }}>

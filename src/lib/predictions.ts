@@ -71,6 +71,11 @@ export function estimateHrMax(age: number | null): number {
   return Math.round(208 - 0.7 * (age ?? 30));
 }
 
+/** A measured max HR if set, else the age-based estimate. */
+export function resolveHrMax(maxHr: number | null, age: number | null): number {
+  return maxHr && maxHr > 0 ? maxHr : estimateHrMax(age);
+}
+
 /** Estimated VO2max from one run's pace + average HR; null if unusable. */
 export function effectiveVo2maxForRun(run: RunSample, hrMax: number): number | null {
   if (!run.avgHr || run.movingTime < 15 * 60 || run.distanceM < 3000) return null;
@@ -115,8 +120,13 @@ function toPredictions(secondsFor: (m: RaceDistance) => number): Prediction[] {
   });
 }
 
-export function buildPredictions(runs: RunSample[], age: number | null, now = new Date()): PredictionResult | null {
-  const hrMax = estimateHrMax(age);
+export function buildPredictions(
+  runs: RunSample[],
+  age: number | null,
+  maxHr: number | null = null,
+  now = new Date(),
+): PredictionResult | null {
+  const hrMax = resolveHrMax(maxHr, age);
   const cutoffRecent = new Date(+now - 28 * 86400000);
 
   const samples = runs

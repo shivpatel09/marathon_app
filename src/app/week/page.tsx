@@ -5,6 +5,8 @@ import { prisma } from "@/lib/prisma";
 import { getActivePlanInstance } from "@/lib/plan";
 import { weekConstraintWarnings, startsSunday, weekPosition } from "@/lib/schedule";
 import { startOfToday, easternDateKey, plannedDateKey } from "@/lib/time";
+import { weeklyAcwr, intensitySplit } from "@/lib/weekMetrics";
+import { resolveHrMax } from "@/lib/predictions";
 import { buildWeekStrength, phaseForMesocycle, type ExerciseInfo, type SessionTemplate } from "@/lib/strength";
 import type { DerivedPaces } from "@/lib/paces";
 import { hansonsPacesFor, HANSONS_HEAT_ADJ } from "@/lib/hansonsPaces";
@@ -60,15 +62,14 @@ export default async function WeekPage({
   const meso = instance.template.mesocycles.find((m) => weekIndex >= m.startWeek && weekIndex <= m.endWeek);
   const mesocycle = meso?.name ?? "";
 
-  const daysToRace = Math.max(0, Math.ceil((+instance.raceDate - +todayMid) / 86400000));
-
   // recommended strength sessions for this week, keyed by day
   const weekForStrength = instance.scheduled
     .filter((s) => s.weekIndex === weekIndex)
     .map((s) => ({ dayOfWeek: s.dayOfWeek, type: s.type }));
-  const [exerciseRows, sessionRows] = await Promise.all([
+  const [exerciseRows, sessionRows, user] = await Promise.all([
     prisma.strengthExercise.findMany(),
     prisma.strengthSessionTemplate.findMany({ orderBy: { order: "asc" } }),
+    prisma.user.findUnique({ where: { id: session.user.id }, select: { maxHr: true, age: true } }),
   ]);
   const exercises = new Map<string, ExerciseInfo>(
     exerciseRows.map((e) => [e.key, { key: e.key, name: e.name, pattern: e.pattern, equipment: e.equipment, cues: e.cues }]),
@@ -105,13 +106,26 @@ export default async function WeekPage({
   const METERS_PER_MILE = 1609.34;
   const activities = await prisma.activity.findMany({
     where: { userId: session.user.id },
-    select: { startDate: true, distanceM: true },
+    select: { startDate: true, distanceM: true, avgSpeed: true, avgHr: true, movingTime: true },
   });
   const milesByDate = new Map<string, number>();
   for (const a of activities) {
     const k = easternDateKey(a.startDate); // real run timestamp -> Eastern day
     milesByDate.set(k, (milesByDate.get(k) ?? 0) + a.distanceM / METERS_PER_MILE);
   }
+
+  // Weekly summary metrics: ACWR (injury risk), intensity split, time on feet.
+  const weekScheduled = instance.scheduled.filter((s) => s.weekIndex === weekIndex);
+  const weekRunKeys = new Set(weekScheduled.filter((s) => s.type !== "REST").map((s) => plannedDateKey(s.date)));
+  const weekEndMs = Math.max(...weekScheduled.map((s) => +s.date));
+  const weekRuns = activities.filter((a) => weekRunKeys.has(easternDateKey(a.startDate)));
+  const thresholdPace = (instance.derivedPaces as unknown as DerivedPaces).lt;
+  const hrMax = resolveHrMax(user?.maxHr ?? null, user?.age ?? null);
+  const summary = {
+    acwr: weeklyAcwr(activities, weekEndMs),
+    intensity: intensitySplit(weekRuns, hrMax, thresholdPace),
+    timeOnFeetSec: weekRuns.reduce((s, a) => s + a.movingTime, 0),
+  };
 
   const days: DayWorkout[] = instance.scheduled
     .filter((s) => s.weekIndex === weekIndex)
@@ -141,10 +155,10 @@ export default async function WeekPage({
         weekIndex={weekIndex}
         mesocycle={mesocycle}
         goalLabel={formatGoal(instance.goalTimeSec)}
-        daysToRace={daysToRace}
         paces={instance.derivedPaces as unknown as DerivedPaces}
         hansonsPaces={hansons}
         hansonsHeatPaces={hansons ? HANSONS_HEAT_ADJ : null}
+        summary={summary}
         days={days}
         warnings={warnings}
       />

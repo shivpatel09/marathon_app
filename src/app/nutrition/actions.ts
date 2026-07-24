@@ -37,6 +37,10 @@ export async function saveProfile(formData: FormData) {
       weightKg: lb(formData.get("weightLb")),
       heightCm,
       age: num(formData.get("age")),
+      maxHr: (() => {
+        const v = num(formData.get("maxHr"));
+        return v != null ? Math.round(v) : null;
+      })(),
       sex: (String(formData.get("sex")) as Sex) || null,
       baselineActivity: (String(formData.get("baselineActivity")) as ActivityLevel) || null,
       bodyCompGoal: (String(formData.get("bodyCompGoal")) as BodyCompGoal) || null,

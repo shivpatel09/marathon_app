@@ -400,6 +400,34 @@ th.num {
   margin: 0.6rem 0;
 }
 
+/* compact weekly metrics row */
+.week-summary {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  align-items: center;
+  font-size: 0.85rem;
+  font-variant-numeric: tabular-nums;
+  padding: 10px 14px;
+  margin: 0 0 12px;
+  background: var(--surface);
+  border-radius: 10px;
+}
+
+.week-summary .muted {
+  margin-right: 4px;
+  font-size: 0.8rem;
+}
+
+.acwr-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-left: 5px;
+  vertical-align: middle;
+}
+
 .heat-toggle {
   display: inline-flex;
   align-items: center;

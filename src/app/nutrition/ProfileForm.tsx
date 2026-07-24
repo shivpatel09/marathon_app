@@ -7,6 +7,7 @@ export interface ProfileDefaults {
   weightKg: number | null;
   heightCm: number | null;
   age: number | null;
+  maxHr: number | null;
   sex: string | null;
   baselineActivity: string | null;
   bodyCompGoal: string | null;
@@ -28,6 +29,9 @@ export default function ProfileForm({ defaults }: { defaults: ProfileDefaults })
           </div>
         </label>
         <label>age<input type="number" name="age" defaultValue={defaults.age ?? ""} required /></label>
+        <label>max HR <span className="muted">(optional)</span>
+          <input type="number" name="maxHr" min="120" max="230" placeholder="e.g. 190" defaultValue={defaults.maxHr ?? ""} />
+        </label>
         <label>sex
           <select name="sex" defaultValue={defaults.sex ?? "MALE"}>
             <option value="MALE">male</option>

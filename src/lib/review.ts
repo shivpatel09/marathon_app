@@ -5,6 +5,8 @@
 import { prisma } from "./prisma";
 import { formatPace, type DerivedPaces } from "./paces";
 import { startOfToday, easternDateKey, plannedDateKey } from "./time";
+import { acwrValueAt, intensitySplit } from "./weekMetrics";
+import { resolveHrMax } from "./predictions";
 
 const METERS_PER_MILE = 1609.34;
 const DAY_MS = 86400000;
@@ -83,6 +85,9 @@ export async function assembleWeeklyReview(
   });
   if (!instance) return null;
 
+  const user = await prisma.user.findUnique({ where: { id: userId }, select: { maxHr: true, age: true } });
+  const hrMax = resolveHrMax(user?.maxHr ?? null, user?.age ?? null);
+
   const total = instance.template.weeks;
   const today = startOfToday();
 
@@ -158,29 +163,12 @@ export async function assembleWeeklyReview(
   const onTargetCount = graded.filter((g) => g.onTarget).length;
 
   // ACWR from the actual Strava history, anchored at week end
-  const loadInWindow = (end: number, days: number) =>
-    activities
-      .filter((a) => +a.startDate > end - days * DAY_MS && +a.startDate <= end)
-      .reduce((s, a) => s + a.distanceM / METERS_PER_MILE, 0);
-  const acwrAt = (end: number) => {
-    const acute = loadInWindow(end, 7);
-    const chronic = loadInWindow(end, 28) / 4;
-    return chronic > 0 ? acute / chronic : 0;
-  };
-  const acwrValue = acwrAt(+weekEnd);
-  const trend = [4, 3, 2, 1, 0].map((k) => Math.round(acwrAt(+weekEnd - k * 7 * DAY_MS) * 100) / 100);
+  const acwrValue = acwrValueAt(activities, +weekEnd);
+  const trend = [4, 3, 2, 1, 0].map((k) => Math.round(acwrValueAt(activities, +weekEnd - k * 7 * DAY_MS) * 100) / 100);
 
   // intensity split over the week's actual runs (hard = at/under threshold pace)
-  let easyMi = 0;
-  let hardMi = 0;
-  for (const a of actualThisWeek) {
-    const mi = a.distanceM / METERS_PER_MILE;
-    const pace = a.avgSpeed ? METERS_PER_MILE / a.avgSpeed : Infinity;
-    if (pace <= paces.lt + 10) hardMi += mi;
-    else easyMi += mi;
-  }
-  const totalMi = easyMi + hardMi;
-  const easyPct = totalMi > 0 ? Math.round((easyMi / totalMi) * 100) : 0;
+  const split = intensitySplit(actualThisWeek, hrMax, paces.lt);
+  const easyPct = split?.easyPct ?? 0;
 
   // week ahead
   const nextWeek = Math.min(weekIndex + 1, total);
